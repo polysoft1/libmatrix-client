@@ -1,0 +1,16 @@
+name: Test the library on Mac OS X
+on: [push]
+
+jobs:
+    build:
+        name: Builds the software
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os: [ubuntu-latest, macos-latest, windows-latest]
+        steps:
+          - uses: actions/checkout@v1
+          - name: Build the file
+            run: |
+                cmake .
+                cmake --build .
