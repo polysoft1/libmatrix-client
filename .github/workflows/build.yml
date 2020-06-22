@@ -1,4 +1,4 @@
-name: Test the library on Mac OS X
+name: Build the library on multiple platforms to ensure compatibility 
 on: [push]
 
 jobs:
