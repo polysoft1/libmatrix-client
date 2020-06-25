@@ -19,7 +19,7 @@ namespace LibMatrix {
  * using a lib that already provides that.
  */
 class CustomHTTPSession : public HTTPSessionBase {
-	public:
+public:
 	/**
 	 * A function to call to initialize the custom session
 	 * This should be statically set in a C++ file of
@@ -52,7 +52,7 @@ class CustomHTTPSession : public HTTPSessionBase {
 		wrappedSession->request(method);
 	}
 
-	private:
+private:
 	std::unique_ptr<HTTPSessionBase*> wrappedSession;
 };
 

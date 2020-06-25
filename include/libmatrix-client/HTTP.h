@@ -87,7 +87,7 @@ enum class HTTPStatus {
 };
 
 class Response {
-	public:
+public:
 	const std::string data;
 	const HTTPStatus status;
 	Headers headers;
@@ -99,7 +99,7 @@ class Response {
 
 
 class HTTPSessionBase {
-	public:
+public:
 	using ResponseCallback = std::function<void(Response)>;
 	virtual void setURL(const std::string& url) = 0;
 	virtual void setBody(const std::string& data) = 0;
