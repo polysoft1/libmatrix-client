@@ -10,9 +10,9 @@ jobs:
           - name: Fetch dependencies
             run: |
                 sudo apt-get install python3-venv
-                sudo -H pip3 install wheel
                 python3 -m venv venv
                 source venv/bin/activate
+                pip3 install wheel
                 pip3 install -r .linter/requirements.txt
           - name: Lint files
             run: |
