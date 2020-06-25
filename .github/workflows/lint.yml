@@ -9,6 +9,7 @@ jobs:
           - uses: actions/checkout@v1
           - name: Fetch dependencies
             run: |
+                sudo apt-get install python3-venv
                 python3 -m venv venv
                 source venv/bin/activate
                 pip3 install -r .linter/requirements.txt
