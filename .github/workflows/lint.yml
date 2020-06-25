@@ -10,7 +10,7 @@ jobs:
           - name: Fetch dependencies
             run: |
                 sudo apt-get install python3-setuptools
-                sudo -H pip3 install coala-bears cpplint
+                sudo -H pip3 install coala-bears cpplint PyYAML>=3.13
           - name: Lint files
             run: |
                 coala --non-interactive
