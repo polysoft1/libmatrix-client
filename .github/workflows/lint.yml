@@ -1,0 +1,15 @@
+name: Ensure that code follows our Coding Styles
+on: [push]
+
+jobs:
+    build:
+        name: Parses files to ensure that 
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v1
+          - name: Fetch dependencies
+            run: |
+                pip3 install coala-bears cpplint
+          - name: Lint files
+            run: |
+                coala --non-interactive
