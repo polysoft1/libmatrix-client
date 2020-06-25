@@ -9,7 +9,7 @@ jobs:
           - uses: actions/checkout@v1
           - name: Fetch dependencies
             run: |
-                pip3 install coala-bears cpplint
+                pip3 install coala-bears cpplint setuptools
           - name: Lint files
             run: |
                 coala --non-interactive
