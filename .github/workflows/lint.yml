@@ -1,0 +1,13 @@
+name: Ensure that code follows our Coding Styles
+on: [push]
+
+jobs:
+    build:
+        name: Parses files to ensure that 
+        runs-on: ubuntu-latest
+        container: coala/base
+        steps:
+          - uses: actions/checkout@v1
+          - name: Lint files
+            run: |
+                coala --non-interactive
