@@ -8,3 +8,4 @@ namespace LibMatrix {
 			[](unsigned char ac, unsigned char bc) { return std::tolower(ac) < std::tolower(bc); });
 	}
 }
+
