@@ -9,8 +9,8 @@ jobs:
           - uses: actions/checkout@v1
           - name: Fetch dependencies
             run: |
-                apt-get install python3-setuptools
-                pip3 install coala-bears cpplint
+                sudo apt-get install python3-setuptools
+                sudo -H pip3 install coala-bears cpplint
           - name: Lint files
             run: |
                 coala --non-interactive
