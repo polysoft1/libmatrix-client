@@ -16,4 +16,4 @@ jobs:
                 pip3 install -r .linter/requirements.txt
           - name: Lint files
             run: |
-                coala --non-interactive
+                ./venv/bin/coala --non-interactive
