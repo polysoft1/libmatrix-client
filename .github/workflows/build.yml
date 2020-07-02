@@ -12,7 +12,7 @@ jobs:
           - uses: actions/checkout@v1
           - name: Fetch build dependencies
             run: |
-                pip3 install conan
+                pip3 install setuptools conan
                 conan install .
           - name: Build the file
             run: |
