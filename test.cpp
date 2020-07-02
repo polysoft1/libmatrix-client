@@ -8,7 +8,9 @@
 void testCPPRest() {
 	bool completed = false;
 	// Skipping SSL shenanigans for now
-	web::http::client::http_client client(web::uri("http://example.com"));
+	web::http::client::http_client client(
+		utility::conversions::to_string_t("http://example.com")
+	);
 	web::http::http_request method(web::http::methods::GET);
 
 	auto request = client.request(method);
