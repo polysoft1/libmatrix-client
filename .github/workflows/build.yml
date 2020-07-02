@@ -16,6 +16,7 @@ jobs:
           - name: Fetch build dependencies
             run: |
                 pip3 install conan
+                conan remote add https://api.bintray.com/conan/bincrafters/public-conan
                 conan install .
           - name: Build the file
             run: |
