@@ -1,9 +1,9 @@
+#include <cpprest/asyncrt_utils.h>
+#include <cpprest/http_client.h>
+
 #include <iostream>
 #include <thread>
 #include <chrono>
-
-#include <cpprest/asyncrt_utils.h>
-#include <cpprest/http_client.h>
 
 void testCPPRest() {
 	bool completed = false;
@@ -13,20 +13,20 @@ void testCPPRest() {
 
 	auto request = client.request(method);
 
-	auto test = request.then([&completed](pplx::task<web::http::http_response> task){
-		try{
+	auto test = request.then([&completed](pplx::task<web::http::http_response> task) {
+		try {
 			web::http::http_response resp = task.get();
 
 			std::cout << resp.status_code() << ": " << resp.reason_phrase() << std::endl;
-		}catch(const std::exception & e){
+		}catch(const std::exception & e) {
 			std::cerr << e.what() << std::endl;
-		}catch(...){
+		}catch(...) {
 			std::cerr << "Unknown exception" << std::endl;
 		}
 		completed = true;
 	});
 
-	while(!completed){
+	while(!completed) {
 		std::this_thread::sleep_for(std::chrono::microseconds(20));
 	}
 }
