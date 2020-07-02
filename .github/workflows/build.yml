@@ -10,9 +10,12 @@ jobs:
                 os: [ubuntu-latest, macos-latest, windows-latest]
         steps:
           - uses: actions/checkout@v1
+          - uses: actions/setup-python@v2
+            with:
+                python-version: 3.6
           - name: Fetch build dependencies
             run: |
-                pip3 install setuptools conan
+                pip3 install conan
                 conan install .
           - name: Build the file
             run: |

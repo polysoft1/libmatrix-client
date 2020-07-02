@@ -7,7 +7,8 @@
 
 void testCPPRest() {
 	bool completed = false;
-	//Skipping SSL shenanigans for now
+	
+	// Skipping SSL shenanigans for now
 	web::http::client::http_client client("http://example.com");
 	web::http::http_request method(web::http::methods::GET);
 
