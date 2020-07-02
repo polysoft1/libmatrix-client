@@ -19,7 +19,7 @@ void testCPPRest() {
 		try {
 			web::http::http_response resp = task.get();
 
-			std::cout << resp.status_code() << ": " << static_cast<const std::string>(resp.reason_phrase()) << std::endl;
+			std::cout << "HTTP Response: " << resp.status_code() << std::endl;
 		}catch(const std::exception & e) {
 			std::cerr << e.what() << std::endl;
 		}catch(...) {
