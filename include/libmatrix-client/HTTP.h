@@ -2,7 +2,9 @@
 #define HTTP_H
 
 #include <string>
+#include <memory>
 #include <map>
+#include <functional>
 
 namespace LibMatrix {
 
@@ -92,7 +94,7 @@ public:
 	const HTTPStatus status;
 	Headers headers;
 
-	Response(int status, std::string data)
+	Response(HTTPStatus status, std::string data)
 		: status(status), data(data)
 	{}
 };
@@ -103,8 +105,8 @@ public:
 	using ResponseCallback = std::function<void(Response)>;
 	virtual void setURL(const std::string& url) = 0;
 	virtual void setBody(const std::string& data) = 0;
-	virtual void setHeaders(const Headers& header) = 0;
-	virtual void setResponseCallback(const ResponseCallback& callback) = 0;
+	virtual void setHeaders(std::shared_ptr<Headers> header) = 0;
+	virtual void setResponseCallback(std::shared_ptr<ResponseCallback> callback) = 0;
 	virtual void request(HTTPMethod method) = 0;
 };
 

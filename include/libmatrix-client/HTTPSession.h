@@ -7,6 +7,10 @@
 
 	#include "CustomHTTPSession.h"
 
+#elif defined(USE_CPPRESTSDK)
+
+	#include "CPPRESTSDKSession.h"
+
 #else
 
 	#error A HTTP Session must be specified at compile time!

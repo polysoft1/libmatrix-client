@@ -1,11 +1,17 @@
 cmake_minimum_required (VERSION 2.8.11)
 project (libmatrix-client)
 
-set(source_files test.cpp)
+# Options
+option(USE_CONAN "Use the Conan package manager" on)
+option(USE_CPPRESTSDK "Use CPPRESTSDK for HTTP" on)
+
+set(source_files test.cpp src/CPPRESTSDKSession.cpp src/HTTP.cpp)
 add_executable(libmatrix-client ${source_files})
 
 set_target_properties(libmatrix-client PROPERTIES LINKER_LANGUAGE CXX)
 set_target_properties(libmatrix-client PROPERTIES CXX_STANDARD 17)
+
+target_include_directories(libmatrix-client PUBLIC "include/libmatrix-client")
 
 # define the project
 set(CMAKE_CXX_STANDARD 17)
@@ -24,5 +30,8 @@ if(USE_CONAN)
 
     target_include_directories(libmatrix-client PRIVATE ${CONAN_INCLUDE_DIRS})
     conan_target_link_libraries(libmatrix-client)
-    add_compile_definitions(CPPRESTSDK)
+
+    if (USE_CPPRESTSDK)
+        add_compile_definitions(USE_CPPRESTSDK)
+    endif()
 endif()

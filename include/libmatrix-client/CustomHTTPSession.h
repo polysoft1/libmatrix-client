@@ -3,7 +3,6 @@
 
 #include "HTTP.h"
 #include <functional>
-#include <memory>
 #include <string>
 
 namespace LibMatrix {
@@ -19,6 +18,8 @@ namespace LibMatrix {
  * using a lib that already provides that.
  */
 class CustomHTTPSession : public HTTPSessionBase {
+private:
+	std::unique_ptr<HTTPSessionBase*> wrappedSession;
 public:
 	/**
 	 * A function to call to initialize the custom session
@@ -36,10 +37,10 @@ public:
 	virtual void setBody(const std::string& data) {
 		wrappedSession->setBody(data);
 	}
-	virtual void setHeaders(const Headers& header) {
+	virtual void setHeaders(std::shared_ptr<Headers> header) {
 		wrappesSession->setHeaders(header);
 	}
-	virtual void setResponseCallback(const ResponseCallback& callback) {
+	virtual void setResponseCallback(std::shared_ptr<ResponseCallback> callback) {
 		wrappedSession->setResponseCallback(callback);
 	}
 
@@ -51,9 +52,6 @@ public:
 	virtual void request(HTTPMethod method) {
 		wrappedSession->request(method);
 	}
-
-private:
-	std::unique_ptr<HTTPSessionBase*> wrappedSession;
 };
 
 typedef CustomHTTPSession HTTPSession
