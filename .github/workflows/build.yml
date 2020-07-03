@@ -20,5 +20,5 @@ jobs:
                 conan install .
           - name: Build the file
             run: |
-                cmake -DUSE_CONAN=ON .
+                cmake -DCMAKE_BUILD_TYPE=Release -DUSE_CONAN=ON .
                 cmake --build .
