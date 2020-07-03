@@ -17,7 +17,7 @@ jobs:
             run: |
                 pip3 install conan
                 conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-                conan install . -s build_type=Debug --build
+                conan install . -s build_type=Debug
           - name: Build the file
             run: |
                 cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_CONAN=ON .
