@@ -7,10 +7,18 @@ jobs:
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
-                os: [ubuntu-latest, macos-latest, windows-latest]
+                os: [ubuntu-latest, windows-latest, macos-latest]
         steps:
           - uses: actions/checkout@v1
+          - uses: actions/setup-python@v2
+            with:
+                python-version: 3.6
+          - name: Fetch build dependencies
+            run: |
+                pip3 install conan
+                conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+                conan install . -s build_type=Debug
           - name: Build the file
             run: |
-                cmake .
+                cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_CONAN=ON .
                 cmake --build .

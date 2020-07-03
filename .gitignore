@@ -1,4 +1,10 @@
 .vs/
+.vscode/
 build
 
 venv
+
+conan*
+graph_info.json
+!conanfile.txt
+/CMakeSettings.json
