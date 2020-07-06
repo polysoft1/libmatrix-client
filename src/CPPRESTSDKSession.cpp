@@ -4,9 +4,12 @@
 #include <cpprest/rawptrstream.h>
 #include <cpprest/asyncrt_utils.h>
 #include <cpprest/http_client.h>
-using namespace LibMatrix;
 
-web::http::method getRequestType(HTTPMethod& method) {
+using LibMatrix::HTTPSession;
+using LibMatrix::HTTPMethod;
+using LibMatrix::CPPRESTSDKSession;
+
+web::http::method getRequestType(const HTTPMethod& method) {
 	switch (method) {
 	case HTTPMethod::CONNECT:
 		return web::http::methods::CONNECT;
@@ -30,22 +33,22 @@ web::http::method getRequestType(HTTPMethod& method) {
 	return U("unknown");
 }
 
-CPPRESTSDKSession::CPPRESTSDKSession() {
-
-}
+CPPRESTSDKSession::CPPRESTSDKSession() {}
 
 void CPPRESTSDKSession::setURL(const std::string& url) {
 	this->url = url;
 }
+
 void CPPRESTSDKSession::setBody(const std::string& data) {
 	this->data = data;
 }
+
 void CPPRESTSDKSession::setHeaders(std::shared_ptr<Headers> headers) {
 	this->headers = headers;
 }
-void CPPRESTSDKSession::setResponseCallback(std::shared_ptr<ResponseCallback> callback) {
-	
-}
+
+void CPPRESTSDKSession::setResponseCallback(std::shared_ptr<ResponseCallback> callback) {}
+
 void CPPRESTSDKSession::request(HTTPMethod method) {
 	web::http::client::http_client client(
 		utility::conversions::to_string_t(url)
@@ -68,8 +71,7 @@ void CPPRESTSDKSession::request(HTTPMethod method) {
 
 	pplx::task task = client.request(request);
 
-	auto test = task.then([this](pplx::task<web::http::http_response> task)
-		{
+	auto test = task.then([this](pplx::task<web::http::http_response> task)	{
 			// exceptions
 			try {
 				web::http::http_response response = task.get();
@@ -78,29 +80,26 @@ void CPPRESTSDKSession::request(HTTPMethod method) {
 					auto test = response.extract_utf8string().then([this, response](utf8string contentString) {
 						HTTPStatus status = static_cast<HTTPStatus>(response.status_code());
 						Response packagedResponse(status, contentString);
-						
+
 						for (std::pair<const utility::string_t, const utility::string_t> item : response.headers()) {
-							packagedResponse.headers.insert(std::pair<std::string, std::string>(utility::conversions::to_utf8string(item.first),
-								utility::conversions::to_utf8string(item.second)));
+							packagedResponse.headers.insert(
+								std::pair<std::string, std::string>(
+									utility::conversions::to_utf8string(item.first),
+										utility::conversions::to_utf8string(item.second)));
 						}
 
 						try {
 							if (callback)
 								(*callback)(packagedResponse);
 						}
-						catch (const std::exception& e)
-						{
+						catch (const std::exception& e)	{
 							std::cerr << "Uncaught error on callback: " << e.what() << std::endl;
 						}
-						});
+					});
 				}
-			}
-			catch (const std::exception& e)
-			{
+			} catch (const std::exception& e) {
 				std::cerr << e.what() << std::endl;
-			}
-			catch (...)
-			{
+			} catch (...) {
 				std::cerr << "unknown exception\n";
 			}
 		});

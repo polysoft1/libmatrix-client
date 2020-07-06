@@ -3,6 +3,7 @@
 
 #include "HTTP.h"
 #include <functional>
+#include <memory>
 #include <string>
 
 namespace LibMatrix {
@@ -20,6 +21,7 @@ namespace LibMatrix {
 class CustomHTTPSession : public HTTPSessionBase {
 private:
 	std::unique_ptr<HTTPSessionBase*> wrappedSession;
+
 public:
 	/**
 	 * A function to call to initialize the custom session

@@ -3,6 +3,7 @@
 
 #include "HTTP.h"
 #include <string>
+#include <memory>
 
 namespace LibMatrix {
 
@@ -15,8 +16,8 @@ private:
 	std::string data;
 	std::shared_ptr<Headers> headers;
 	std::shared_ptr<ResponseCallback> callback;
-public:
 
+public:
 	CPPRESTSDKSession();
 
 	virtual void setURL(const std::string& url);
