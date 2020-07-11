@@ -47,7 +47,13 @@ void CPPRESTSDKSession::setHeaders(std::shared_ptr<Headers> headers) {
 	this->headers = headers;
 }
 
-void CPPRESTSDKSession::setResponseCallback(std::shared_ptr<ResponseCallback> callback) {}
+void CPPRESTSDKSession::setResponseCallback(ResponseCallback callback) {
+	this->callback = callback;
+}
+
+void CPPRESTSDKSession::setErrorCallback(ErrorCallback callback) {
+	this->errorCallback = callback;
+}
 
 void CPPRESTSDKSession::request(HTTPMethod method) {
 	web::http::client::http_client client(
@@ -90,7 +96,7 @@ void CPPRESTSDKSession::request(HTTPMethod method) {
 
 						try {
 							if (callback)
-								(*callback)(packagedResponse);
+								callback(packagedResponse);
 						}
 						catch (const std::exception& e)	{
 							std::cerr << "Uncaught error on callback: " << e.what() << std::endl;
@@ -98,9 +104,9 @@ void CPPRESTSDKSession::request(HTTPMethod method) {
 					});
 				}
 			} catch (const std::exception& e) {
-				std::cerr << e.what() << std::endl;
+				errorCallback(e.what());
 			} catch (...) {
-				std::cerr << "unknown exception\n";
+				errorCallback("Unknown Error");
 			}
 		});
 }
