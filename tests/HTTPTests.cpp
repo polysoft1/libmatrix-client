@@ -9,14 +9,14 @@
 
 BOOST_AUTO_TEST_CASE( example_org_GET_request ) {
 	LibMatrix::CPPRESTSDKSession session;
-	bool success = false;
 	bool running = true;
-	std::string error_msg;
+	LibMatrix::HTTPStatus result;
 
 	session.setURL("http://example.org/");
-	session.setResponseCallback([&running, &success](LibMatrix::Response resp){
-		success = (resp.status == LibMatrix::HTTPStatus::HTTP_OK);
+	session.setResponseCallback([&running, &result](LibMatrix::Response resp){
+		result = resp.status;
 		running = false;
+
 	});
 	session.request(LibMatrix::HTTPMethod::GET);
 	
@@ -24,24 +24,27 @@ BOOST_AUTO_TEST_CASE( example_org_GET_request ) {
 		//Wait
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
-
-	BOOST_ASSERT(success);
+	
+	//Need explicit casts because LibMatrix::HTTPStatus is a enum class which does not impelment operator<<
+	BOOST_CHECK_EQUAL(static_cast<int>(LibMatrix::HTTPStatus::HTTP_OK), static_cast<int>(result));
 }
 
 BOOST_AUTO_TEST_CASE( invalid_TLD_test ) {
-	LibMatrix::CPPRESTSDKSession session;
-	bool success = false;
+	LibMatrix::CPPRESTSDKSession session;;
 	bool running = true;
-	std::string error_msg;
+	bool success = false;
+	std::string error;
+	const std::string expectedErr = "Error resolving address"; //Need this for BOOST_CHECK_EQUAL_COLLECTIONS
 
 	session.setURL("http://example.gfoakgoawogeriawejhgiogejiujwaegheujawgh/");
 	session.setResponseCallback([&running, &success](LibMatrix::Response resp){
 		success = false;
 		running = false;
 	});
-	session.setErrorCallback([&running, &success](std::string error) {
-		success = (error.compare("Error resolving address") == 0);
+	session.setErrorCallback([&running, &success, &error](std::string respErr) {
+		success = true;
 		running = false;
+		error = respErr;
 	});
 
 	session.request(LibMatrix::HTTPMethod::GET);
@@ -50,6 +53,9 @@ BOOST_AUTO_TEST_CASE( invalid_TLD_test ) {
 		//Wait
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
-
-	BOOST_ASSERT(success);
+	
+	if(!success){
+		BOOST_FAIL("Somehow the TLD in this test resolved.");
+	}
+	BOOST_CHECK_EQUAL_COLLECTIONS(error.begin(), error.end(), expectedErr.begin(), expectedErr.end());
 }
