@@ -5,6 +5,7 @@
 #include <thread>
 #include <chrono>
 
+#ifdef USE_CPPRESTSDK
 void testCPPRest() {
 	bool completed = false;
 	// Skipping SSL shenanigans for now
@@ -32,9 +33,12 @@ void testCPPRest() {
 		std::this_thread::sleep_for(std::chrono::microseconds(20));
 	}
 }
+#endif
 
 int main(int argc, char **argv) {
 	std::cout << "Hello World, this is to test GitHub Action flows" << std::endl;
+#ifdef USE_CPPRESTSDK
 	testCPPRest();
+#endif
 	return 0;
 }
