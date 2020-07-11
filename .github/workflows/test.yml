@@ -21,4 +21,4 @@ jobs:
                 cd tests
                 cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_CONAN=ON .
                 cmake --build .
-                ./tests
+                ./libmatrix-tests
