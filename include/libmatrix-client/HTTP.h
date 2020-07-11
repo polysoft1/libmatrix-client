@@ -5,6 +5,7 @@
 #include <memory>
 #include <map>
 #include <functional>
+#include <sstream>
 
 namespace LibMatrix {
 
