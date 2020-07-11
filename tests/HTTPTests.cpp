@@ -19,12 +19,12 @@ BOOST_AUTO_TEST_CASE( example_org_GET_request ) {
 
 	});
 	session.request(LibMatrix::HTTPMethod::GET);
-	
+
 	while(running){
 		//Wait
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
-	
+
 	//Need explicit casts because LibMatrix::HTTPStatus is a enum class which does not impelment operator<<
 	BOOST_CHECK_EQUAL(static_cast<int>(LibMatrix::HTTPStatus::HTTP_OK), static_cast<int>(result));
 }
@@ -48,12 +48,12 @@ BOOST_AUTO_TEST_CASE( invalid_TLD_test ) {
 	});
 
 	session.request(LibMatrix::HTTPMethod::GET);
-	
+
 	while(running){
 		//Wait
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
-	
+
 	if(!success){
 		BOOST_FAIL("Somehow the TLD in this test resolved.");
 	}
