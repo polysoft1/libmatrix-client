@@ -18,6 +18,7 @@ jobs:
                 conan install . -s build_type=Debug
           - name: Build the file
             run: |
+                cd tests
                 cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_CONAN=ON .
                 cmake --build .
                 ./tests
