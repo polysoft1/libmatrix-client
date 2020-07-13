@@ -1,44 +1,17 @@
-#include <cpprest/asyncrt_utils.h>
-#include <cpprest/http_client.h>
-
 #include <iostream>
-#include <thread>
-#include <chrono>
 
-#ifdef USE_CPPRESTSDK
-void testCPPRest() {
-	bool completed = false;
-	// Skipping SSL shenanigans for now
-	web::http::client::http_client client(
-		utility::conversions::to_string_t("http://example.com")
-	);
-	web::http::http_request method(web::http::methods::GET);
+#include "include/libmatrix-client/MatrixSession.h"
 
-	auto request = client.request(method);
+using LibMatrix::MatrixSession;
 
-	auto test = request.then([&completed](pplx::task<web::http::http_response> task) {
-		try {
-			web::http::http_response resp = task.get();
+int main(int argc, const char **argv) {
+	MatrixSession client{argv[1]};
 
-			std::cout << "HTTP Response: " << resp.status_code() << std::endl;
-		}catch(const std::exception & e) {
-			std::cerr << e.what() << std::endl;
-		}catch(...) {
-			std::cerr << "Unknown exception" << std::endl;
-		}
-		completed = true;
-	});
-
-	while(!completed) {
-		std::this_thread::sleep_for(std::chrono::microseconds(20));
+	if(!client.login(argv[2], argv[3])) {
+		std::cout << "Could not login :(" << std::endl;
+	}else {
+		std::cout << "Logged in :)" << std::endl;
 	}
-}
-#endif
 
-int main(int argc, char **argv) {
-	std::cout << "Hello World, this is to test GitHub Action flows" << std::endl;
-#ifdef USE_CPPRESTSDK
-	testCPPRest();
-#endif
 	return 0;
 }
