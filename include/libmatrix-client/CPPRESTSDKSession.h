@@ -15,7 +15,8 @@ private:
 	std::string url;
 	std::string data;
 	std::shared_ptr<Headers> headers;
-	std::shared_ptr<ResponseCallback> callback;
+	ResponseCallback callback;
+	ErrorCallback errorCallback;
 
 public:
 	CPPRESTSDKSession();
@@ -23,7 +24,8 @@ public:
 	virtual void setURL(const std::string& url);
 	virtual void setBody(const std::string& data);
 	virtual void setHeaders(std::shared_ptr<Headers> header);
-	virtual void setResponseCallback(std::shared_ptr<ResponseCallback> callback);
+	virtual void setResponseCallback(ResponseCallback callback);
+	virtual void setErrorCallback(ErrorCallback callback);
 
 	/**
 		* This is a non-blocking function to start the request.

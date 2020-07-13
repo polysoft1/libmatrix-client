@@ -5,6 +5,7 @@
 #include <memory>
 #include <map>
 #include <functional>
+#include <sstream>
 
 namespace LibMatrix {
 
@@ -103,10 +104,13 @@ public:
 class HTTPSessionBase {
 public:
 	using ResponseCallback = std::function<void(Response)>;
+	using ErrorCallback = std::function<void(std::string)>;
+
 	virtual void setURL(const std::string& url) = 0;
 	virtual void setBody(const std::string& data) = 0;
 	virtual void setHeaders(std::shared_ptr<Headers> header) = 0;
-	virtual void setResponseCallback(std::shared_ptr<ResponseCallback> callback) = 0;
+	virtual void setResponseCallback(ResponseCallback callback) = 0;
+	virtual void setErrorCallback(ErrorCallback callback) = 0;
 	virtual void request(HTTPMethod method) = 0;
 };
 

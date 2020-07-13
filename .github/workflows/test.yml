@@ -1,0 +1,24 @@
+name: Run unit tests  
+on: [push]
+
+jobs:
+    build:
+        name: Builds the software
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v1
+          - uses: actions/setup-python@v2
+            with:
+                python-version: 3.6
+          - name: Fetch build dependencies
+            run: |
+                cd tests
+                pip3 install conan
+                conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+                conan install . -s build_type=Debug
+          - name: Build the file
+            run: |
+                cd tests
+                cmake -DCMAKE_BUILD_TYPE=Debug -DUSE_CONAN=ON .
+                cmake --build .
+                ./libmatrix-tests
