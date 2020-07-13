@@ -1,4 +1,4 @@
-[cli]
+[linting]
 bears = SpaceConsistencyBear,CPPLintBear
 files = **/*.cpp,**/*.h,**/*.hpp
 ignore = build/**/*.cpp,out/**/*.cpp,**/build/**/*.cpp

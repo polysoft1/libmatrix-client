@@ -1,6 +1,7 @@
 #ifndef MATRIX_SESSION_H
 #define MATRIX_SESSION_H
 
+#include <memory>
 #include <string_view>
 
 #include "HTTP.h"

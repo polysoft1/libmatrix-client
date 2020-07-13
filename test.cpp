@@ -9,7 +9,7 @@ int main(int argc, const char **argv) {
 
 	if(!client.login(argv[2], argv[3])) {
 		std::cout << "Could not login :(" << std::endl;
-	}else {
+	} else {
 		std::cout << "Logged in :)" << std::endl;
 	}
 
