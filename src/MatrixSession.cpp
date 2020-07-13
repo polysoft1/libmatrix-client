@@ -11,7 +11,7 @@
 #include "../include/libmatrix-client/CPPRESTSDKSession.h"
 #endif
 
-using namespace LibMatrix;
+using LibMatrix::MatrixSession;
 using json = nlohmann::json;
 
 void MatrixSession::setHTTPCaller() {
@@ -56,7 +56,7 @@ bool MatrixSession::login(std::string uname, std::string password) {
 	http->setResponseCallback([&](Response result) {
 		json body = json::parse(result.data);
 
-		switch(result.status){
+		switch(result.status) {
 		case HTTPStatus::HTTP_OK:
 			accessToken = body["access_token"].get<std::string>();
 			deviceID = body["device_id"].get<std::string>();

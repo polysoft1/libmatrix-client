@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string_view>
+#include <string>
 
 #include "HTTP.h"
 
@@ -21,12 +22,10 @@ private:
 	static constexpr std::string_view LOGIN_TYPE = "m.login.password";
 public:
 	MatrixSession();
-	MatrixSession(std::string url);
+	explicit MatrixSession(std::string url);
 
 	bool login(std::string uname, std::string password);
+};// End MatrixSession Class
 
-};  // End MatrixSession Class
-
-}
-
+}  // namespace LibMatrix
 #endif
