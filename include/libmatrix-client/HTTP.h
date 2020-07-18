@@ -103,7 +103,7 @@ public:
 using ResponseCallback = std::function<void(Response)>;
 using ErrorCallback = std::function<void(std::string)>;
 
-// TODO: Add a base class and add versions of this for string, binary, and files.
+// TODO(null321): Add a base class and add versions of this for string, binary, and files.
 // This is currently the string version.
 class HTTPRequestData {
 private:

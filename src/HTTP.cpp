@@ -51,5 +51,5 @@ ErrorCallback HTTPRequestData::getErrorCallback() const {
 	return errorCallback;
 }
 
-}
+} // namespace LibMatrix
 
