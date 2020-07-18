@@ -15,6 +15,7 @@ struct CaseInsensitiveCompare {
 
 using Headers = std::map<std::string, std::string, CaseInsensitiveCompare>;
 
+#undef DELETE
 enum class HTTPMethod {
 	CONNECT, DELETE, GET, HEAD, OPTIONS,
 	POST, PUT, TRACE, PATCH

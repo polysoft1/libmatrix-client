@@ -5,7 +5,7 @@ project (libmatrix-tests)
 option(USE_CONAN "Use the Conan package manager" on)
 option(USE_CPPRESTSDK "Use CPPRESTSDK for HTTP" on)
 
-set(source_files HTTPTests.cpp ../src/CPPRESTSDKSession.cpp ../src/HTTP.cpp)
+set(source_files HTTPTests.cpp ../src/CPPRESTSDKClient.cpp ../src/HTTP.cpp)
 add_executable(libmatrix-tests ${source_files})
 
 set_target_properties(libmatrix-tests PROPERTIES LINKER_LANGUAGE CXX)

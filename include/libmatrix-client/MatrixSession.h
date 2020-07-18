@@ -1,11 +1,11 @@
 #ifndef MATRIX_SESSION_H
 #define MATRIX_SESSION_H
 
+#include "HTTPClient.h"
+
 #include <memory>
 #include <string_view>
 #include <string>
-
-#include "HTTPClient.h"
 
 namespace LibMatrix {
 
