@@ -5,11 +5,11 @@
 
 #ifdef USE_CUSTOM_HTTP_SESSION
 
-	#include "CustomHTTPSession.h"
+	#include "CustomHTTPClient.h"
 
 #elif defined(USE_CPPRESTSDK)
 
-	#include "CPPRESTSDKSession.h"
+	#include "CPPRESTSDKClient.h"
 
 #else
 

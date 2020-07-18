@@ -5,13 +5,13 @@
 #include <string_view>
 #include <string>
 
-#include "HTTP.h"
+#include "HTTPClient.h"
 
 namespace LibMatrix {
 
 class MatrixSession {
 private:
-	std::unique_ptr<HTTPSessionBase> http;
+	std::unique_ptr<HTTPClient> http;
 	std::string homeserverURL;
 	std::string accessToken;
 	std::string deviceID;

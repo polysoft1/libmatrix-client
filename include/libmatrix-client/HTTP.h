@@ -100,18 +100,44 @@ public:
 	{}
 };
 
+using ResponseCallback = std::function<void(Response)>;
+using ErrorCallback = std::function<void(std::string)>;
 
-class HTTPSessionBase {
+// TODO: Add a base class and add versions of this for string, binary, and files.
+// This is currently the string version.
+class HTTPRequestData {
+private:
+	HTTPMethod method;
+	std::string subPath;
+	std::string data;
+	std::shared_ptr<Headers> headers;
+	ResponseCallback callback;
+	ErrorCallback errorCallback;
 public:
-	using ResponseCallback = std::function<void(Response)>;
-	using ErrorCallback = std::function<void(std::string)>;
+	HTTPRequestData(HTTPMethod method, const std::string& subPath);
 
-	virtual void setURL(const std::string& url) = 0;
-	virtual void setBody(const std::string& data) = 0;
-	virtual void setHeaders(std::shared_ptr<Headers> header) = 0;
-	virtual void setResponseCallback(ResponseCallback callback) = 0;
-	virtual void setErrorCallback(ErrorCallback callback) = 0;
-	virtual void request(HTTPMethod method) = 0;
+	virtual void setMethod(HTTPMethod method);
+	virtual void setSubPath(const std::string& subPath);
+	virtual void setBody(const std::string& data);
+	virtual void setHeaders(std::shared_ptr<Headers> header);
+	virtual void setResponseCallback(ResponseCallback callback);
+	virtual void setErrorCallback(ErrorCallback callback);
+
+	virtual HTTPMethod getMethod() const;
+	virtual const std::string& getSubPath() const;
+	virtual const std::string& getBody() const;
+	virtual std::shared_ptr<Headers> getHeaders() const;
+	virtual ResponseCallback getResponseCallback() const;
+	virtual ErrorCallback getErrorCallback() const;
+};
+
+class HTTPClientBase {
+	/**
+	 * This is a non-blocking function to start the request.
+	 * The callback stored in the request data will be called when it is done.
+	 * An exception should be thrown if there are components missing.
+	 */
+	virtual void request(HTTPRequestData&& method) = 0;
 };
 
 }  // namespace LibMatrix

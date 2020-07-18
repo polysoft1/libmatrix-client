@@ -7,19 +7,13 @@
 
 #include "../include/libmatrix-client/MatrixSession.h"
 
-#ifdef USE_CPPRESTSDK
-#include "../include/libmatrix-client/CPPRESTSDKSession.h"
-#endif
+#include "HTTPClient.h"
 
 using LibMatrix::MatrixSession;
 using json = nlohmann::json;
 
 void MatrixSession::setHTTPCaller() {
-#ifdef USE_CPPRESTSDK
-	http = std::make_unique<CPPRESTSDKSession>();
-#else
-	#error "There is no HTTP caller defined for preprocessing..."
-#endif
+	http = std::make_unique<HTTPClient>(homeserverURL);
 }
 
 MatrixSession::MatrixSession() : homeserverURL("") {
@@ -49,11 +43,11 @@ bool MatrixSession::login(std::string uname, std::string password) {
 	headers["Content-Type"] = "application/json";
 	headers["Accept"] = "application/json";
 
-	http->setURL(homeserverURL + "/_matrix/client/r0/login");
-	http->setBody(body.dump());
-	http->setHeaders(std::make_shared<Headers>(headers));
+	HTTPRequestData data(HTTPMethod::POST, "/_matrix/client/r0/login");
+	data.setBody(body.dump());
+	data.setHeaders(std::make_shared<Headers>(headers));
 
-	http->setResponseCallback([&](Response result) {
+	data.setResponseCallback([&](Response result) {
 		json body = json::parse(result.data);
 
 		switch(result.status) {
@@ -69,12 +63,12 @@ bool MatrixSession::login(std::string uname, std::string password) {
 		}
 		running = false;
 	});
-	http->setErrorCallback([&success, &running](std::string reason) {
+	data.setErrorCallback([&success, &running](std::string reason) {
 		std::cerr << reason << std::endl;
 		success = false;
 		running = false;
 	});
-	http->request(HTTPMethod::POST);
+	http->request(std::move(data));
 
 	while(running) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
