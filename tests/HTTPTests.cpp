@@ -5,19 +5,20 @@
 
 #include <boost/test/included/unit_test.hpp>
 
-#include "../include/libmatrix-client/CPPRESTSDKSession.h"
+#include "../include/libmatrix-client/CPPRESTSDKClient.h"
 
 BOOST_AUTO_TEST_CASE(example_org_GET_request) {
-	LibMatrix::CPPRESTSDKSession session;
+	LibMatrix::CPPRESTSDKClient client("http://example.org/");
 	bool running = true;
 	LibMatrix::HTTPStatus result;
 
-	session.setURL("http://example.org/");
-	session.setResponseCallback([&running, &result](LibMatrix::Response resp) {
+	LibMatrix::HTTPRequestData data(LibMatrix::HTTPMethod::GET, "");
+
+	data.setResponseCallback([&running, &result](LibMatrix::Response resp) {
 		result = resp.status;
 		running = false;
 	});
-	session.request(LibMatrix::HTTPMethod::GET);
+	client.request(std::move(data));
 
 	while(running) {
 		// Wait
@@ -32,23 +33,24 @@ BOOST_AUTO_TEST_CASE(invalid_TLD_test) {
 	// Need this for BOOST_CHECK_EQUAL_COLLECTIONS
 	const std::string expectedErr = "Error resolving address";
 
-	LibMatrix::CPPRESTSDKSession session;
+	LibMatrix::CPPRESTSDKClient client("http://example.gfoakgoawogeriawejhgiogejiujwaegheujawgh/");
 	bool running = true;
 	bool success = false;
 	std::string error;
 
-	session.setURL("http://example.gfoakgoawogeriawejhgiogejiujwaegheujawgh/");
-	session.setResponseCallback([&running, &success](LibMatrix::Response resp) {
+	LibMatrix::HTTPRequestData data(LibMatrix::HTTPMethod::GET, "");
+
+	data.setResponseCallback([&running, &success](LibMatrix::Response resp) {
 		success = false;
 		running = false;
 	});
-	session.setErrorCallback([&running, &success, &error](std::string respErr) {
+	data.setErrorCallback([&running, &success, &error](std::string respErr) {
 		success = true;
 		running = false;
 		error = respErr;
 	});
 
-	session.request(LibMatrix::HTTPMethod::GET);
+	client.request(std::move(data));
 
 	while(running) {
 		// Wait

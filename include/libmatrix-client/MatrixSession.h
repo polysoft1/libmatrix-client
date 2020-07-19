@@ -1,17 +1,17 @@
 #ifndef MATRIX_SESSION_H
 #define MATRIX_SESSION_H
 
-#include <memory>
 #include <string_view>
-#include <string>
+#include "HTTPClient.h"
 
-#include "HTTP.h"
+#include <memory>
+#include <string>
 
 namespace LibMatrix {
 
 class MatrixSession {
 private:
-	std::unique_ptr<HTTPSessionBase> http;
+	std::unique_ptr<HTTPClient> http;
 	std::string homeserverURL;
 	std::string accessToken;
 	std::string deviceID;
