@@ -29,15 +29,18 @@ MatrixSession::MatrixSession(std::string url) : homeserverURL(url) {
 
 bool MatrixSession::login(std::string uname, std::string password) {
 	bool success, running = true;
-	json body;
-	body["type"] = MatrixSession::LOGIN_TYPE;
-	body["password"] = password;
-	body["initial_device_display_name"] = "Testing LibMatrix";
-
-	body["identifier"] = nullptr;
-	body["identifier"]["type"] = MatrixSession::USER_TYPE;
-	body["identifier"]["user"] = uname;
-
+	json body{
+		{"type", MatrixSession::LOGIN_TYPE},
+		{"password", password},
+		//TODO(kdvalin) Make this configurable
+		{"initial_device_display_name", "Testing LibMatrix"},
+		{"identifier",
+			{
+				{"type", MatrixSession::USER_TYPE},
+				{"user", uname}  // Ignore CPPLintBear
+			}
+		}
+	};
 	Headers headers;
 
 	headers["Content-Type"] = "application/json";
