@@ -5,9 +5,8 @@
 
 #include <nlohmann/json.hpp>
 
-#include "../include/libmatrix-client/MatrixSession.h"
-#include "../include/libmatrix-client/HTTP.h"
-
+#include "MatrixSession.h"
+#include "HTTP.h"
 #include "HTTPClient.h"
 
 using LibMatrix::HTTPMethod;
@@ -39,15 +38,12 @@ bool MatrixSession::login(std::string uname, std::string password) {
 	body["identifier"]["type"] = MatrixSession::USER_TYPE;
 	body["identifier"]["user"] = uname;
 
-	std::cout << homeserverURL + "/_matrix/client/r0/login" << std::endl;
-	std::cout << body.dump() << std::endl;
-
 	Headers headers;
 
 	headers["Content-Type"] = "application/json";
 	headers["Accept"] = "application/json";
 
-	HTTPRequestData data(HTTPMethod::POST, "/_matrix/client/r0/login");
+	HTTPRequestData data(HTTPMethod::POST, MatrixURLs::LOGIN);
 	data.setBody(body.dump());
 	data.setHeaders(std::make_shared<Headers>(headers));
 
@@ -82,15 +78,16 @@ bool MatrixSession::login(std::string uname, std::string password) {
 }
 
 json MatrixSession::getRooms() {
-	if (accessToken.empty()) {
+	if(accessToken.empty()) {
 		throw std::runtime_error("You need to login first!");
 	}
-	bool success, running = true;
+	bool running = true;
 	json output;
-	Headers reqHeaders;
-	reqHeaders["Authorization"] = "Bearer " + accessToken; 
 
-	HTTPRequestData data(HTTPMethod::GET, "/_matrix/client/r0/joined_rooms");
+	Headers reqHeaders;
+	reqHeaders["Authorization"] = "Bearer " + accessToken;
+
+	HTTPRequestData data(HTTPMethod::GET, MatrixURLs::GET_ROOMS);
 	data.setHeaders(std::make_shared<Headers>(reqHeaders));
 	data.setResponseCallback([&](Response result) {
 		json body = json::parse(result.data);
@@ -98,23 +95,20 @@ json MatrixSession::getRooms() {
 		switch(result.status) {
 		case HTTPStatus::HTTP_OK:
 			output = body;
-			success = true;
 			break;
 		default:
 			std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
 			output = "Error";
-			success = false;
 		}
 		running = false;
 	});
-	data.setErrorCallback([&success, &running](std::string reason) {
+	data.setErrorCallback([&running](std::string reason) {
 		std::cerr << reason << std::endl;
-		success = false;
 		running = false;
 	});
 	http->request(std::move(data));
 
-	while(running){
+	while(running) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 

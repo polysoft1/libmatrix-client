@@ -11,6 +11,13 @@
 
 namespace LibMatrix {
 
+namespace MatrixURLs {
+	const std::string PATH_PREFIX = "/_matrix/client/r0";
+
+	const std::string LOGIN = PATH_PREFIX + "/login";
+	const std::string GET_ROOMS = PATH_PREFIX + "/joined_rooms";
+}  // namespace MatrixURLs
+
 class MatrixSession {
 private:
 	std::unique_ptr<HTTPClient> http;

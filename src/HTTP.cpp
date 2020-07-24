@@ -1,4 +1,5 @@
 #include <cctype>
+
 #include "HTTP.h"
 
 namespace LibMatrix {
