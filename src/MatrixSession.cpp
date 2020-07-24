@@ -6,10 +6,14 @@
 #include <nlohmann/json.hpp>
 
 #include "../include/libmatrix-client/MatrixSession.h"
+#include "../include/libmatrix-client/HTTP.h"
 
 #include "HTTPClient.h"
 
+using LibMatrix::HTTPMethod;
 using LibMatrix::MatrixSession;
+using LibMatrix::HTTPStatus;
+
 using json = nlohmann::json;
 
 void MatrixSession::setHTTPCaller() {
@@ -75,4 +79,44 @@ bool MatrixSession::login(std::string uname, std::string password) {
 	}
 
 	return success;
+}
+
+json MatrixSession::getRooms() {
+	if (accessToken.empty()) {
+		throw std::runtime_error("You need to login first!");
+	}
+	bool success, running = true;
+	json output;
+	Headers reqHeaders;
+	reqHeaders["Authorization"] = "Bearer " + accessToken; 
+
+	HTTPRequestData data(HTTPMethod::GET, "/_matrix/client/r0/joined_rooms");
+	data.setHeaders(std::make_shared<Headers>(reqHeaders));
+	data.setResponseCallback([&](Response result) {
+		json body = json::parse(result.data);
+
+		switch(result.status) {
+		case HTTPStatus::HTTP_OK:
+			output = body;
+			success = true;
+			break;
+		default:
+			std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
+			output = "Error";
+			success = false;
+		}
+		running = false;
+	});
+	data.setErrorCallback([&success, &running](std::string reason) {
+		std::cerr << reason << std::endl;
+		success = false;
+		running = false;
+	});
+	http->request(std::move(data));
+
+	while(running){
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
+
+	return output;
 }
