@@ -1,10 +1,11 @@
+
 #include <memory>
 #include <iostream>
 #include <chrono>
 #include <thread>
 
 #include <nlohmann/json.hpp>
-#include <fmt/core.h>
+#include <fmt/core.h>  // Ignore CPPLintBear
 
 #include "MatrixSession.h"
 #include "HTTP.h"
