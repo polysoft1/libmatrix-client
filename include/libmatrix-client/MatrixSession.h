@@ -12,11 +12,18 @@
 namespace LibMatrix {
 
 namespace MatrixURLs {
-	const std::string PATH_PREFIX = "/_matrix/client/r0";
+	/**	Format:
+	*		All URLs should NOT have a trailing /
+	*		*_PREFIX: URL that goes before a different URL (this should not be used directly in a HTTP call obviously)
+	*		*_FORMAT: A format string that needs to get passed through fmt or std::format
+	*		Categories should be grouped together and separated from each other by 1 newline
+	*/
+	const std::string CLIENT_PREFIX = "/_matrix/client/r0";
 
-	const std::string LOGIN = PATH_PREFIX + "/login";
-	const std::string GET_ROOMS = PATH_PREFIX + "/joined_rooms";
-	const std::string SEND_MESSAGE = PATH_PREFIX + "/rooms/{:s}/send/m.room.message";
+	const std::string LOGIN = CLIENT_PREFIX + "/login";
+	const std::string GET_ROOMS = CLIENT_PREFIX + "/joined_rooms";
+
+	const std::string SEND_MESSAGE_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/send/m.room.message/{:s}";
 }  // namespace MatrixURLs
 
 class MatrixSession {

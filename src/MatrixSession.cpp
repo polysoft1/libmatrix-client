@@ -126,14 +126,13 @@ bool MatrixSession::sendMessage(std::string roomID, std::string message) {
 	}
 	bool success, running = true;
 	//TODO(kdvalin) Update transaction IDs to be unique
-	HTTPRequestData data(HTTPMethod::PUT, fmt::format(MatrixURLs::SEND_MESSAGE, roomID) + "/m1234557");
+	HTTPRequestData data(HTTPMethod::PUT, fmt::format(MatrixURLs::SEND_MESSAGE_FORMAT, roomID, "m1234557"));
 	json body{
 		{"msgtype", "m.text"},
 		{"body", message}
 	};
 	Headers reqHeaders;
 	reqHeaders["Authorization"] = "Bearer " + accessToken;
-	std::cout << fmt::format(MatrixURLs::SEND_MESSAGE, roomID, 0) << std::endl;
 	data.setBody(body.dump());
 	data.setHeaders(std::make_shared<Headers>(reqHeaders));
 
