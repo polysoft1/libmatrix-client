@@ -16,6 +16,7 @@ namespace MatrixURLs {
 
 	const std::string LOGIN = PATH_PREFIX + "/login";
 	const std::string GET_ROOMS = PATH_PREFIX + "/joined_rooms";
+	const std::string SEND_MESSAGE = PATH_PREFIX + "/rooms/{:s}/send/m.room.message";
 }  // namespace MatrixURLs
 
 class MatrixSession {
@@ -35,6 +36,7 @@ public:
 
 	bool login(std::string uname, std::string password);
 	nlohmann::json getRooms();
+	bool sendMessage(std::string roomID, std::string message);
 };// End MatrixSession Class
 
 }  // namespace LibMatrix

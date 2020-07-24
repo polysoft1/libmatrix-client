@@ -4,6 +4,7 @@
 #include <thread>
 
 #include <nlohmann/json.hpp>
+#include <fmt/core.h>
 
 #include "MatrixSession.h"
 #include "HTTP.h"
@@ -116,4 +117,48 @@ json MatrixSession::getRooms() {
 	}
 
 	return output;
+}
+
+bool MatrixSession::sendMessage(std::string roomID, std::string message) {
+	if(accessToken.empty()) {
+		throw std::runtime_error("You need to login first!");
+	}
+	bool success, running = true;
+	//TODO(kdvalin) Update transaction IDs to be unique
+	HTTPRequestData data(HTTPMethod::PUT, fmt::format(MatrixURLs::SEND_MESSAGE, roomID) + "/m1234557");
+	json body{
+		{"msgtype", "m.text"},
+		{"body", message}
+	};
+	Headers reqHeaders;
+	reqHeaders["Authorization"] = "Bearer " + accessToken;
+	std::cout << fmt::format(MatrixURLs::SEND_MESSAGE, roomID, 0) << std::endl;
+	data.setBody(body.dump());
+	data.setHeaders(std::make_shared<Headers>(reqHeaders));
+
+	data.setResponseCallback([&](Response result) {
+		json body = json::parse(result.data);
+
+		switch(result.status) {
+		case HTTPStatus::HTTP_OK:
+			success = true;
+			break;
+		default:
+			std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
+			success = false;
+		}
+		running = false;
+	});
+	data.setErrorCallback([&success, &running](std::string reason) {
+		std::cerr << reason << std::endl;
+		running = false;
+		success = false;
+	});
+	http->request(std::move(data));
+
+	while(running) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
+
+	return success;
 }

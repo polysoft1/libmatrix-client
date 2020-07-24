@@ -14,5 +14,6 @@ int main(int argc, const char **argv) {
 		std::cout << "Logged in :)" << std::endl;
 	}
 	std::cout << client.getRooms().dump(4) << std::endl;
+	client.sendMessage(argv[4], argv[5]);
 	return 0;
 }
