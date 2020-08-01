@@ -66,20 +66,17 @@ std::future<void> MatrixSession::login(std::string uname, std::string password) 
 		default:
 			std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
 			threadResult->set_exception(
-				std::make_exception_ptr(std::runtime_error("Hi"))
-			);
+				std::make_exception_ptr(std::runtime_error("Hi")));
 		}
 	});
 	data->setErrorCallback([threadResult](std::string reason) {
 		std::cout << "Made it into the sucessful callback" << std::endl;
 		threadResult->set_exception(
 			std::make_exception_ptr(
-				std::runtime_error(reason)
-			)
-		);
+				std::runtime_error(reason)));
 	});
+
 	http->request(data);
-	std::cout << threadResult.use_count() << std::endl;
 	return threadResult->get_future();
 }
 
@@ -89,10 +86,8 @@ std::future<json> MatrixSession::getRooms() {
 	if(accessToken.empty()) {
 		threadResult->set_exception(
 			std::make_exception_ptr(
-				std::runtime_error("You need to login first!")
-			)
-		);
-	}else {
+				std::runtime_error("You need to login first!")));
+	} else {
 		Headers reqHeaders;
 		reqHeaders["Authorization"] = "Bearer " + accessToken;
 
@@ -110,15 +105,12 @@ std::future<json> MatrixSession::getRooms() {
 				std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
 				threadResult->set_exception(
 					std::make_exception_ptr(
-						std::runtime_error("Could not retrieve rooms")
-					)
-				);
+						std::runtime_error("Could not retrieve rooms")));
 			}
 		});
 		data->setErrorCallback([threadResult](std::string reason) {
 			threadResult->set_exception(
-				std::make_exception_ptr(std::runtime_error(reason))
-			);
+				std::make_exception_ptr(std::runtime_error(reason)));
 		});
 		http->request(data);
 	}
@@ -132,12 +124,11 @@ std::future<void> MatrixSession::sendMessage(std::string roomID, std::string mes
 	if(accessToken.empty()) {
 		threadResult->set_exception(
 			std::make_exception_ptr(
-				std::runtime_error("You need to login first!")
-			)
-		);
-	}else {
+				std::runtime_error("You need to login first!")));
+	} else {
 		//TODO(kdvalin) Update transaction IDs to be unique
-		auto data = std::make_shared<HTTPRequestData>(HTTPMethod::PUT, fmt::format(MatrixURLs::SEND_MESSAGE_FORMAT, roomID, "m1234557"));
+		auto data = std::make_shared<HTTPRequestData>(HTTPMethod::PUT,
+				fmt::format(MatrixURLs::SEND_MESSAGE_FORMAT, roomID, "m1234557"));
 		json body{
 			{"msgtype", "m.text"},
 			{"body", message}
@@ -157,16 +148,13 @@ std::future<void> MatrixSession::sendMessage(std::string roomID, std::string mes
 			default:
 				std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
 				threadResult->set_exception(
-					std::make_exception_ptr(std::runtime_error("Boo"))
-				);
+					std::make_exception_ptr(std::runtime_error("Boo")));
 			}
 		});
 		data->setErrorCallback([threadResult](std::string reason) {
 			threadResult->set_exception(
 				std::make_exception_ptr(
-					std::runtime_error(reason)
-				)
-			);
+					std::runtime_error(reason)));
 		});
 		http->request(data);
 	}
