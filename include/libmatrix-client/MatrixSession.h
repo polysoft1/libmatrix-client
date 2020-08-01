@@ -43,7 +43,7 @@ public:
 	explicit MatrixSession(std::string url);
 
 	std::future<void> login(std::string uname, std::string password);
-	nlohmann::json getRooms();
+	std::future<nlohmann::json> getRooms();
 	std::future<void> sendMessage(std::string roomID, std::string message);
 };// End MatrixSession Class
 

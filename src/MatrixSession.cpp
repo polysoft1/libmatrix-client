@@ -83,42 +83,47 @@ std::future<void> MatrixSession::login(std::string uname, std::string password) 
 	return threadResult->get_future();
 }
 
-json MatrixSession::getRooms() {
+std::future<json> MatrixSession::getRooms() {
+	auto threadResult = std::make_shared<std::promise<json>>();
+
 	if(accessToken.empty()) {
-		throw std::runtime_error("You need to login first!");
+		threadResult->set_exception(
+			std::make_exception_ptr(
+				std::runtime_error("You need to login first!")
+			)
+		);
+	}else {
+		Headers reqHeaders;
+		reqHeaders["Authorization"] = "Bearer " + accessToken;
+
+		auto data = std::make_shared<HTTPRequestData>(HTTPMethod::GET, MatrixURLs::GET_ROOMS);
+		data->setHeaders(std::make_shared<Headers>(reqHeaders));
+
+		data->setResponseCallback([threadResult](Response result) {
+			json body = json::parse(result.data);
+
+			switch(result.status) {
+			case HTTPStatus::HTTP_OK:
+				threadResult->set_value(body);
+				break;
+			default:
+				std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
+				threadResult->set_exception(
+					std::make_exception_ptr(
+						std::runtime_error("Could not retrieve rooms")
+					)
+				);
+			}
+		});
+		data->setErrorCallback([threadResult](std::string reason) {
+			threadResult->set_exception(
+				std::make_exception_ptr(std::runtime_error(reason))
+			);
+		});
+		http->request(data);
 	}
-	bool running = true;
-	json output;
 
-	Headers reqHeaders;
-	reqHeaders["Authorization"] = "Bearer " + accessToken;
-
-	auto data = std::make_shared<HTTPRequestData>(HTTPMethod::GET, MatrixURLs::GET_ROOMS);
-	data->setHeaders(std::make_shared<Headers>(reqHeaders));
-	data->setResponseCallback([&](Response result) {
-		json body = json::parse(result.data);
-
-		switch(result.status) {
-		case HTTPStatus::HTTP_OK:
-			output = body;
-			break;
-		default:
-			std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
-			output = "Error";
-		}
-		running = false;
-	});
-	data->setErrorCallback([&running](std::string reason) {
-		std::cerr << reason << std::endl;
-		running = false;
-	});
-	http->request(data);
-
-	while(running) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	}
-
-	return output;
+	return threadResult->get_future();
 }
 
 std::future<void> MatrixSession::sendMessage(std::string roomID, std::string message) {
