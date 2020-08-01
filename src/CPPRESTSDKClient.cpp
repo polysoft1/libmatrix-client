@@ -61,7 +61,7 @@ void CPPRESTSDKClient::request(std::shared_ptr<HTTPRequestData> data) {
 			web::http::http_response response = task.get();
 
 			if (data->getResponseCallback()) {
-				auto test = response.extract_utf8string().then([this, response, &data](utf8string contentString) {
+				auto test = response.extract_utf8string().then([this, response, data](utf8string contentString) {
 					HTTPStatus status = static_cast<HTTPStatus>(response.status_code());
 					Response packagedResponse(status, contentString);
 
