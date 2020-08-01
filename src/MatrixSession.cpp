@@ -1,4 +1,3 @@
-
 #include <memory>
 #include <iostream>
 #include <chrono>
@@ -50,11 +49,12 @@ std::future<void> MatrixSession::login(std::string uname, std::string password) 
 	headers["Content-Type"] = "application/json";
 	headers["Accept"] = "application/json";
 
-	HTTPRequestData data(HTTPMethod::POST, MatrixURLs::LOGIN);
-	data.setBody(body.dump());
-	data.setHeaders(std::make_shared<Headers>(headers));
+	auto data = std::make_shared<HTTPRequestData>(HTTPMethod::POST, MatrixURLs::LOGIN);
+	data->setBody(body.dump());
+	data->setHeaders(std::make_shared<Headers>(headers));
 
-	data.setResponseCallback([threadResult, this](Response result) {
+	data->setResponseCallback([this, threadResult](Response result) {
+		std::cout << "Made it into the sucessful callback" << std::endl;
 		json body = json::parse(result.data);
 
 		switch(result.status) {
@@ -70,14 +70,15 @@ std::future<void> MatrixSession::login(std::string uname, std::string password) 
 			);
 		}
 	});
-	data.setErrorCallback([threadResult](std::string reason) {
+	data->setErrorCallback([threadResult](std::string reason) {
+		std::cout << "Made it into the sucessful callback" << std::endl;
 		threadResult->set_exception(
 			std::make_exception_ptr(
 				std::runtime_error(reason)
 			)
 		);
 	});
-	http->request(std::move(data));
+	http->request(data);
 	std::cout << threadResult.use_count() << std::endl;
 	return threadResult->get_future();
 }
@@ -92,9 +93,9 @@ json MatrixSession::getRooms() {
 	Headers reqHeaders;
 	reqHeaders["Authorization"] = "Bearer " + accessToken;
 
-	HTTPRequestData data(HTTPMethod::GET, MatrixURLs::GET_ROOMS);
-	data.setHeaders(std::make_shared<Headers>(reqHeaders));
-	data.setResponseCallback([&](Response result) {
+	auto data = std::make_shared<HTTPRequestData>(HTTPMethod::GET, MatrixURLs::GET_ROOMS);
+	data->setHeaders(std::make_shared<Headers>(reqHeaders));
+	data->setResponseCallback([&](Response result) {
 		json body = json::parse(result.data);
 
 		switch(result.status) {
@@ -107,11 +108,11 @@ json MatrixSession::getRooms() {
 		}
 		running = false;
 	});
-	data.setErrorCallback([&running](std::string reason) {
+	data->setErrorCallback([&running](std::string reason) {
 		std::cerr << reason << std::endl;
 		running = false;
 	});
-	http->request(std::move(data));
+	http->request(data);
 
 	while(running) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -126,17 +127,17 @@ bool MatrixSession::sendMessage(std::string roomID, std::string message) {
 	}
 	bool success, running = true;
 	//TODO(kdvalin) Update transaction IDs to be unique
-	HTTPRequestData data(HTTPMethod::PUT, fmt::format(MatrixURLs::SEND_MESSAGE_FORMAT, roomID, "m1234557"));
+	auto data = std::make_shared<HTTPRequestData>(HTTPMethod::PUT, fmt::format(MatrixURLs::SEND_MESSAGE_FORMAT, roomID, "m1234557"));
 	json body{
 		{"msgtype", "m.text"},
 		{"body", message}
 	};
 	Headers reqHeaders;
 	reqHeaders["Authorization"] = "Bearer " + accessToken;
-	data.setBody(body.dump());
-	data.setHeaders(std::make_shared<Headers>(reqHeaders));
+	data->setBody(body.dump());
+	data->setHeaders(std::make_shared<Headers>(reqHeaders));
 
-	data.setResponseCallback([&](Response result) {
+	data->setResponseCallback([&](Response result) {
 		json body = json::parse(result.data);
 
 		switch(result.status) {
@@ -149,12 +150,12 @@ bool MatrixSession::sendMessage(std::string roomID, std::string message) {
 		}
 		running = false;
 	});
-	data.setErrorCallback([&success, &running](std::string reason) {
+	data->setErrorCallback([&success, &running](std::string reason) {
 		std::cerr << reason << std::endl;
 		running = false;
 		success = false;
 	});
-	http->request(std::move(data));
+	http->request(data);
 
 	while(running) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));

@@ -6,10 +6,13 @@ using LibMatrix::MatrixSession;
 
 int main(int argc, const char **argv) {
 	MatrixSession client{argv[1]};
-
 	try {
-		client.login(argv[2], argv[3]).get();
-	}catch(std::exception e) {
+		auto future = client.login(argv[2], argv[3]);
+		if(future.valid()) {
+			std::cout << "Moving along!" << std::endl;
+			future.get();
+		}
+	}catch(std::runtime_error e) {
 		std::cout << "Could not login :(" << std::endl;
 		std::cout << e.what() << std::endl;
 		return 1;

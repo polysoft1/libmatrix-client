@@ -14,7 +14,7 @@ private:
 	web::http::client::http_client client;
 public:
 	explicit CPPRESTSDKClient(const std::string& basePath);
-	virtual void request(HTTPRequestData&& method);
+	virtual void request(std::shared_ptr<HTTPRequestData> method);
 };
 
 typedef CPPRESTSDKClient HTTPClient;

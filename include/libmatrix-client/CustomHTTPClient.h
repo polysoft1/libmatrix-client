@@ -34,7 +34,7 @@ public:
 	CustomHTTPClient()
 		: wrappedClient(initializer()) {}
 
-	virtual void request(HTTPRequestData&& method) { wrappedClient->request(std::move(method));  }
+	virtual void request(std::shared_ptr<HTTPRequestData> method) { wrappedClient->request(method);  }
 };
 
 typedef CustomHTTPClient HTTPRequest
