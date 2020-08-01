@@ -121,45 +121,50 @@ json MatrixSession::getRooms() {
 	return output;
 }
 
-bool MatrixSession::sendMessage(std::string roomID, std::string message) {
+std::future<void> MatrixSession::sendMessage(std::string roomID, std::string message) {
+	auto threadResult = std::make_shared<std::promise<void>>();
+
 	if(accessToken.empty()) {
-		throw std::runtime_error("You need to login first!");
+		threadResult->set_exception(
+			std::make_exception_ptr(
+				std::runtime_error("You need to login first!")
+			)
+		);
+	}else {
+		//TODO(kdvalin) Update transaction IDs to be unique
+		auto data = std::make_shared<HTTPRequestData>(HTTPMethod::PUT, fmt::format(MatrixURLs::SEND_MESSAGE_FORMAT, roomID, "m1234557"));
+		json body{
+			{"msgtype", "m.text"},
+			{"body", message}
+		};
+		Headers reqHeaders;
+		reqHeaders["Authorization"] = "Bearer " + accessToken;
+		data->setBody(body.dump());
+		data->setHeaders(std::make_shared<Headers>(reqHeaders));
+
+		data->setResponseCallback([threadResult](Response result) {
+			json body = json::parse(result.data);
+
+			switch(result.status) {
+			case HTTPStatus::HTTP_OK:
+				threadResult->set_value();
+				break;
+			default:
+				std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
+				threadResult->set_exception(
+					std::make_exception_ptr(std::runtime_error("Boo"))
+				);
+			}
+		});
+		data->setErrorCallback([threadResult](std::string reason) {
+			threadResult->set_exception(
+				std::make_exception_ptr(
+					std::runtime_error(reason)
+				)
+			);
+		});
+		http->request(data);
 	}
-	bool success, running = true;
-	//TODO(kdvalin) Update transaction IDs to be unique
-	auto data = std::make_shared<HTTPRequestData>(HTTPMethod::PUT, fmt::format(MatrixURLs::SEND_MESSAGE_FORMAT, roomID, "m1234557"));
-	json body{
-		{"msgtype", "m.text"},
-		{"body", message}
-	};
-	Headers reqHeaders;
-	reqHeaders["Authorization"] = "Bearer " + accessToken;
-	data->setBody(body.dump());
-	data->setHeaders(std::make_shared<Headers>(reqHeaders));
 
-	data->setResponseCallback([&](Response result) {
-		json body = json::parse(result.data);
-
-		switch(result.status) {
-		case HTTPStatus::HTTP_OK:
-			success = true;
-			break;
-		default:
-			std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
-			success = false;
-		}
-		running = false;
-	});
-	data->setErrorCallback([&success, &running](std::string reason) {
-		std::cerr << reason << std::endl;
-		running = false;
-		success = false;
-	});
-	http->request(data);
-
-	while(running) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	}
-
-	return success;
+	return threadResult->get_future();
 }

@@ -44,7 +44,7 @@ public:
 
 	std::future<void> login(std::string uname, std::string password);
 	nlohmann::json getRooms();
-	bool sendMessage(std::string roomID, std::string message);
+	std::future<void> sendMessage(std::string roomID, std::string message);
 };// End MatrixSession Class
 
 }  // namespace LibMatrix
