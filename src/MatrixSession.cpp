@@ -3,6 +3,7 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <future>
 
 #include <nlohmann/json.hpp>
 #include <fmt/core.h>  // Ignore CPPLintBear
@@ -29,8 +30,9 @@ MatrixSession::MatrixSession(std::string url) : homeserverURL(url) {
 	setHTTPCaller();
 }
 
-bool MatrixSession::login(std::string uname, std::string password) {
-	bool success, running = true;
+std::future<void> MatrixSession::login(std::string uname, std::string password) {
+	auto threadResult = std::make_shared<std::promise<void>>();
+
 	json body{
 		{"type", MatrixSession::LOGIN_TYPE},
 		{"password", password},
@@ -52,34 +54,32 @@ bool MatrixSession::login(std::string uname, std::string password) {
 	data.setBody(body.dump());
 	data.setHeaders(std::make_shared<Headers>(headers));
 
-	data.setResponseCallback([&](Response result) {
+	data.setResponseCallback([threadResult, this](Response result) {
 		json body = json::parse(result.data);
 
 		switch(result.status) {
 		case HTTPStatus::HTTP_OK:
 			accessToken = body["access_token"].get<std::string>();
 			deviceID = body["device_id"].get<std::string>();
-			std::cout << "Successful login!  Device ID is " << deviceID << std::endl;
-			success = true;
+			threadResult->set_value();
 			break;
 		default:
 			std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
-			success = false;
+			threadResult->set_exception(
+				std::make_exception_ptr(std::runtime_error("Hi"))
+			);
 		}
-		running = false;
 	});
-	data.setErrorCallback([&success, &running](std::string reason) {
-		std::cerr << reason << std::endl;
-		success = false;
-		running = false;
+	data.setErrorCallback([threadResult](std::string reason) {
+		threadResult->set_exception(
+			std::make_exception_ptr(
+				std::runtime_error(reason)
+			)
+		);
 	});
 	http->request(std::move(data));
-
-	while(running) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	}
-
-	return success;
+	std::cout << threadResult.use_count() << std::endl;
+	return threadResult->get_future();
 }
 
 json MatrixSession::getRooms() {

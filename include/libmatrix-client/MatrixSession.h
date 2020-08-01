@@ -4,6 +4,7 @@
 #include <string_view>
 #include <memory>
 #include <string>
+#include <future>
 
 #include <nlohmann/json.hpp>
 
@@ -41,7 +42,7 @@ public:
 	MatrixSession();
 	explicit MatrixSession(std::string url);
 
-	bool login(std::string uname, std::string password);
+	std::future<void> login(std::string uname, std::string password);
 	nlohmann::json getRooms();
 	bool sendMessage(std::string roomID, std::string message);
 };// End MatrixSession Class
