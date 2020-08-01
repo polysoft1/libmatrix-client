@@ -1,9 +1,9 @@
-
 #include <memory>
 #include <iostream>
 #include <chrono>
 #include <thread>
 #include <algorithm>
+#include <future>
 
 #include <nlohmann/json.hpp>
 #include <fmt/core.h>  // Ignore CPPLintBear
@@ -30,8 +30,9 @@ MatrixSession::MatrixSession(std::string url) : homeserverURL(url) {
 	setHTTPCaller();
 }
 
-bool MatrixSession::login(std::string uname, std::string password) {
-	bool success, running = true;
+std::future<void> MatrixSession::login(std::string uname, std::string password) {
+	auto threadResult = std::make_shared<std::promise<void>>();
+
 	json body{
 		{"type", MatrixSession::LOGIN_TYPE},
 		{"password", password},
@@ -49,209 +50,115 @@ bool MatrixSession::login(std::string uname, std::string password) {
 	headers["Content-Type"] = "application/json";
 	headers["Accept"] = "application/json";
 
-	HTTPRequestData data(HTTPMethod::POST, MatrixURLs::LOGIN);
-	data.setBody(body.dump());
-	data.setHeaders(std::make_shared<Headers>(headers));
+	auto data = std::make_shared<HTTPRequestData>(HTTPMethod::POST, MatrixURLs::LOGIN);
+	data->setBody(body.dump());
+	data->setHeaders(std::make_shared<Headers>(headers));
 
-	data.setResponseCallback([&](Response result) {
+	data->setResponseCallback([this, threadResult](Response result) {
+		std::cout << "Made it into the sucessful callback" << std::endl;
 		json body = json::parse(result.data);
 
 		switch(result.status) {
 		case HTTPStatus::HTTP_OK:
 			accessToken = body["access_token"].get<std::string>();
 			deviceID = body["device_id"].get<std::string>();
-			std::cout << "Successful login!  Device ID is " << deviceID << std::endl;
-			success = true;
+			threadResult->set_value();
 			break;
 		default:
 			std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
-			success = false;
+			threadResult->set_exception(
+				std::make_exception_ptr(std::runtime_error("Hi")));
 		}
-		running = false;
 	});
-	data.setErrorCallback([&success, &running](std::string reason) {
-		std::cerr << reason << std::endl;
-		success = false;
-		running = false;
+	data->setErrorCallback([threadResult](std::string reason) {
+		std::cout << "Made it into the sucessful callback" << std::endl;
+		threadResult->set_exception(
+			std::make_exception_ptr(
+				std::runtime_error(reason)));
 	});
-	http->request(std::move(data));
 
-	while(running) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	}
-
-	return success;
+	http->request(data);
+	return threadResult->get_future();
 }
 
-json MatrixSession::getRooms() {
+std::future<json> MatrixSession::getRooms() {
+	auto threadResult = std::make_shared<std::promise<json>>();
+
 	if(accessToken.empty()) {
-		throw std::runtime_error("You need to login first!");
-	}
-	bool running = true;
-	json output;
+		threadResult->set_exception(
+			std::make_exception_ptr(
+				std::runtime_error("You need to login first!")));
+	} else {
+		Headers reqHeaders;
+		reqHeaders["Authorization"] = "Bearer " + accessToken;
 
-	Headers reqHeaders;
-	reqHeaders["Authorization"] = "Bearer " + accessToken;
+		auto data = std::make_shared<HTTPRequestData>(HTTPMethod::GET, MatrixURLs::GET_ROOMS);
+		data->setHeaders(std::make_shared<Headers>(reqHeaders));
 
-	HTTPRequestData data(HTTPMethod::GET, MatrixURLs::GET_ROOMS);
-	data.setHeaders(std::make_shared<Headers>(reqHeaders));
-	data.setResponseCallback([&](Response result) {
-		json body = json::parse(result.data);
+		data->setResponseCallback([threadResult](Response result) {
+			json body = json::parse(result.data);
 
-		switch(result.status) {
-		case HTTPStatus::HTTP_OK:
-			output = body;
-			break;
-		default:
-			std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
-			output = "Error";
-		}
-		running = false;
-	});
-	data.setErrorCallback([&running](std::string reason) {
-		std::cerr << reason << std::endl;
-		running = false;
-	});
-	http->request(std::move(data));
-
-	while(running) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			switch(result.status) {
+			case HTTPStatus::HTTP_OK:
+				threadResult->set_value(body);
+				break;
+			default:
+				std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
+				threadResult->set_exception(
+					std::make_exception_ptr(
+						std::runtime_error("Could not retrieve rooms")));
+			}
+		});
+		data->setErrorCallback([threadResult](std::string reason) {
+			threadResult->set_exception(
+				std::make_exception_ptr(std::runtime_error(reason)));
+		});
+		http->request(data);
 	}
 
-	return output;
+	return threadResult->get_future();
 }
 
-bool MatrixSession::sendMessage(std::string roomID, std::string message) {
+std::future<void> MatrixSession::sendMessage(std::string roomID, std::string message) {
+	auto threadResult = std::make_shared<std::promise<void>>();
+
 	if(accessToken.empty()) {
-		throw std::runtime_error("You need to login first!");
-	}
-	bool success, running = true;
-	//TODO(kdvalin) Update transaction IDs to be unique
-	HTTPRequestData data(HTTPMethod::PUT, fmt::format(MatrixURLs::SEND_MESSAGE_FORMAT, roomID, "m1234557"));
-	json body{
-		{"msgtype", "m.text"},
-		{"body", message}
-	};
-	Headers reqHeaders;
-	reqHeaders["Authorization"] = "Bearer " + accessToken;
-	data.setBody(body.dump());
-	data.setHeaders(std::make_shared<Headers>(reqHeaders));
+		threadResult->set_exception(
+			std::make_exception_ptr(
+				std::runtime_error("You need to login first!")));
+	} else {
+		//TODO(kdvalin) Update transaction IDs to be unique
+		auto data = std::make_shared<HTTPRequestData>(HTTPMethod::PUT,
+				fmt::format(MatrixURLs::SEND_MESSAGE_FORMAT, roomID, "m1234557"));
+		json body{
+			{"msgtype", "m.text"},
+			{"body", message}
+		};
+		Headers reqHeaders;
+		reqHeaders["Authorization"] = "Bearer " + accessToken;
+		data->setBody(body.dump());
+		data->setHeaders(std::make_shared<Headers>(reqHeaders));
 
-	data.setResponseCallback([&](Response result) {
-		json body = json::parse(result.data);
+		data->setResponseCallback([threadResult](Response result) {
+			json body = json::parse(result.data);
 
-		switch(result.status) {
-		case HTTPStatus::HTTP_OK:
-			success = true;
-			break;
-		default:
-			std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
-			success = false;
-		}
-		running = false;
-	});
-	data.setErrorCallback([&success, &running](std::string reason) {
-		std::cerr << reason << std::endl;
-		running = false;
-		success = false;
-	});
-	http->request(std::move(data));
-
-	while(running) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	}
-
-	return success;
-}
-
-json MatrixSession::getMessages(std::string batchNumber, bool firstTime) {
-	if(accessToken.empty()) {
-		throw std::runtime_error("You need to login first!");
-	}
-	bool running = true;
-
-	json output;
-	std::string urlParams = "?timeout={:d}&full_state={}";
-
-	if(!batchNumber.empty()) {
-		urlParams += "&since={:s}";
-	}
-	HTTPRequestData data(HTTPMethod::GET, fmt::format(MatrixURLs::SYNC + urlParams, 30000, firstTime, batchNumber));
-
-	Headers reqHeaders;
-	reqHeaders["Authorization"] = "Bearer " + accessToken;
-
-	data.setHeaders(std::make_shared<Headers>(reqHeaders));
-
-	data.setResponseCallback([&](Response result) {
-		json body = json::parse(result.data);
-
-		switch(result.status) {
-		case HTTPStatus::HTTP_OK:
-			output = body;
-			break;
-		default:
-			std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
-		}
-		running = false;
-	});
-	data.setErrorCallback([&running](std::string reason) {
-		std::cerr << reason << std::endl;
-		running = false;
-	});
-	http->request(std::move(data));
-	
-	while(running) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			switch(result.status) {
+			case HTTPStatus::HTTP_OK:
+				threadResult->set_value();
+				break;
+			default:
+				std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
+				threadResult->set_exception(
+					std::make_exception_ptr(std::runtime_error("Boo")));
+			}
+		});
+		data->setErrorCallback([threadResult](std::string reason) {
+			threadResult->set_exception(
+				std::make_exception_ptr(
+					std::runtime_error(reason)));
+		});
+		http->request(data);
 	}
 
-	return output;
-}
-
-nlohmann::json MatrixSession::getMessages(bool firstTime) {
-	return getMessages("", firstTime);
-}
-
-nlohmann::json MatrixSession::getAllRoomMessages(std::string roomId) {
-	json sync = getMessages();
-	json output;
-	bool running = true;
-	//TODO(kdvalin) Update transaction IDs to be unique
-	HTTPRequestData data(HTTPMethod::GET, 
-		fmt::format(
-			MatrixURLs::GET_ROOM_MESSAGE_FORMAT + "?from={:s}&dir=b&limit={:d}", 
-			roomId, 
-			sync["rooms"]["join"][roomId]["timeline"]["prev_batch"].get<std::string>(), 
-			100000
-		)
-	);
-	output = sync["rooms"]["join"][roomId]["timeline"]["events"];
-
-	Headers reqHeaders;
-	reqHeaders["Authorization"] = "Bearer " + accessToken;
-	data.setHeaders(std::make_shared<Headers>(reqHeaders));
-
-	data.setResponseCallback([&](Response result) {
-		json body = json::parse(result.data);
-
-		switch(result.status) {
-		case HTTPStatus::HTTP_OK:
-			output += body["chunk"];
-			break;
-		default:
-			std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
-		}
-		running = false;
-	});
-	data.setErrorCallback([&running](std::string reason) {
-		std::cerr << reason << std::endl;
-		running = false;
-	});
-	http->request(std::move(data));
-
-	while(running) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	}
-
-	return output;
+	return threadResult->get_future();
 }

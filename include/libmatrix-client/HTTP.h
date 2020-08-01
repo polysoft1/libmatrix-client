@@ -138,7 +138,7 @@ class HTTPClientBase {
 	 * The callback stored in the request data will be called when it is done.
 	 * An exception should be thrown if there are components missing.
 	 */
-	virtual void request(HTTPRequestData&& method) = 0;
+	virtual void request(std::shared_ptr<HTTPRequestData> method) = 0;
 };
 
 }  // namespace LibMatrix

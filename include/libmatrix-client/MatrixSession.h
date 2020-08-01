@@ -4,6 +4,7 @@
 #include <string_view>
 #include <memory>
 #include <string>
+#include <future>
 
 #include <nlohmann/json.hpp>
 
@@ -43,9 +44,9 @@ public:
 	MatrixSession();
 	explicit MatrixSession(std::string url);
 
-	bool login(std::string uname, std::string password);
-	nlohmann::json getRooms();
-	bool sendMessage(std::string roomID, std::string message);
+	std::future<void> login(std::string uname, std::string password);
+	std::future<nlohmann::json> getRooms();
+	std::future<void> sendMessage(std::string roomID, std::string message);
 	
 	nlohmann::json getMessages(std::string batchNumber, bool firstTime = false);
 	nlohmann::json getMessages(bool firstTime = false);
