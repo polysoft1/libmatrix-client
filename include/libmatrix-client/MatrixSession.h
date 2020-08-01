@@ -22,8 +22,10 @@ namespace MatrixURLs {
 
 	const std::string LOGIN = CLIENT_PREFIX + "/login";
 	const std::string GET_ROOMS = CLIENT_PREFIX + "/joined_rooms";
+	const std::string SYNC = CLIENT_PREFIX + "/sync";
 
 	const std::string SEND_MESSAGE_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/send/m.room.message/{:s}";
+	const std::string GET_ROOM_MESSAGE_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/messages";
 }  // namespace MatrixURLs
 
 class MatrixSession {
@@ -44,6 +46,11 @@ public:
 	bool login(std::string uname, std::string password);
 	nlohmann::json getRooms();
 	bool sendMessage(std::string roomID, std::string message);
+	
+	nlohmann::json getMessages(std::string batchNumber, bool firstTime = false);
+	nlohmann::json getMessages(bool firstTime = false);
+
+	nlohmann::json getAllRoomMessages(std::string roomId);
 };// End MatrixSession Class
 
 }  // namespace LibMatrix
