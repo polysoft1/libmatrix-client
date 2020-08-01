@@ -37,31 +37,31 @@ web::http::method getRequestType(const HTTPMethod& method) {
 	return U("unknown");
 }
 
-void CPPRESTSDKClient::request(HTTPRequestData&& data) {
-	web::http::method httpMethod = getRequestType(data.getMethod());
+void CPPRESTSDKClient::request(std::shared_ptr<HTTPRequestData> data) {
+	web::http::method httpMethod = getRequestType(data->getMethod());
 
 	web::http::http_request request(httpMethod);
 
 	// Add headers if set
-	if (data.getHeaders()) {
+	if (data->getHeaders()) {
 		web::http::http_headers& headers = request.headers();
-		for (std::pair<std::string, std::string> item : *data.getHeaders().get()) {
+		for (std::pair<std::string, std::string> item : *data->getHeaders().get()) {
 			headers.add(utility::conversions::to_string_t(item.first),
 				utility::conversions::to_string_t(item.second));
 		}
 	}
-	request.set_body(utility::conversions::to_string_t(data.getBody()));
-	request.set_request_uri(utility::conversions::to_string_t(data.getSubPath()));
+	request.set_body(utility::conversions::to_string_t(data->getBody()));
+	request.set_request_uri(utility::conversions::to_string_t(data->getSubPath()));
 
 	pplx::task task = client.request(request);
 
-	auto test = task.then([this, &data](pplx::task<web::http::http_response> task) {
+	auto test = task.then([this, data](pplx::task<web::http::http_response> task) {
 		// exceptions
 		try {
 			web::http::http_response response = task.get();
 
-			if (data.getResponseCallback()) {
-				auto test = response.extract_utf8string().then([this, response, &data](utf8string contentString) {
+			if (data->getResponseCallback()) {
+				auto test = response.extract_utf8string().then([this, response, data](utf8string contentString) {
 					HTTPStatus status = static_cast<HTTPStatus>(response.status_code());
 					Response packagedResponse(status, contentString);
 
@@ -73,8 +73,8 @@ void CPPRESTSDKClient::request(HTTPRequestData&& data) {
 					}
 
 					try {
-						if (data.getResponseCallback())
-							data.getResponseCallback()(packagedResponse);
+						if (data->getResponseCallback())
+							data->getResponseCallback()(packagedResponse);
 					}
 					catch (const std::exception& e) {
 						std::cerr << "Uncaught error on callback: " << e.what() << std::endl;
@@ -83,10 +83,10 @@ void CPPRESTSDKClient::request(HTTPRequestData&& data) {
 			}
 		}
 		catch (const std::exception& e) {
-			data.getErrorCallback()(e.what());
+			data->getErrorCallback()(e.what());
 		}
 		catch (...) {
-			data.getErrorCallback()("Unknown Error");
+			data->getErrorCallback()("Unknown Error");
 		}
 		});
 }

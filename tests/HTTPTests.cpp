@@ -12,13 +12,13 @@ BOOST_AUTO_TEST_CASE(example_org_GET_request) {
 	bool running = true;
 	LibMatrix::HTTPStatus result;
 
-	LibMatrix::HTTPRequestData data(LibMatrix::HTTPMethod::GET, "");
+	auto data = std::make_shared<LibMatrix::HTTPRequestData>(LibMatrix::HTTPMethod::GET, "");
 
-	data.setResponseCallback([&running, &result](LibMatrix::Response resp) {
+	data->setResponseCallback([&running, &result](LibMatrix::Response resp) {
 		result = resp.status;
 		running = false;
 	});
-	client.request(std::move(data));
+	client.request(data);
 
 	while(running) {
 		// Wait
@@ -38,19 +38,19 @@ BOOST_AUTO_TEST_CASE(invalid_TLD_test) {
 	bool success = false;
 	std::string error;
 
-	LibMatrix::HTTPRequestData data(LibMatrix::HTTPMethod::GET, "");
+	auto data = std::make_shared<LibMatrix::HTTPRequestData>(LibMatrix::HTTPMethod::GET, "");
 
-	data.setResponseCallback([&running, &success](LibMatrix::Response resp) {
+	data->setResponseCallback([&running, &success](LibMatrix::Response resp) {
 		success = false;
 		running = false;
 	});
-	data.setErrorCallback([&running, &success, &error](std::string respErr) {
+	data->setErrorCallback([&running, &success, &error](std::string respErr) {
 		success = true;
 		running = false;
 		error = respErr;
 	});
 
-	client.request(std::move(data));
+	client.request(data);
 
 	while(running) {
 		// Wait
