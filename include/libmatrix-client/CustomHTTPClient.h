@@ -1,6 +1,8 @@
 #ifndef CUSTOM_HTTP_SESSION_H
 #define CUSTOM_HTTP_SESSION_H
 
+#ifdef USE_CPPRESTSDK
+
 #include "HTTP.h"
 #include <functional>
 #include <memory>
@@ -42,4 +44,4 @@ typedef CustomHTTPClient HTTPRequest
 }  // namespace LibMatrix
 
 #endif
-
+#endif
