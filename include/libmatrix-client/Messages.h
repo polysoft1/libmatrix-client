@@ -5,6 +5,7 @@
 #include <chrono>
 #include <vector>
 #include <utility>
+#include <ctime>
 
 namespace LibMatrix {
 
