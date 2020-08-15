@@ -1,5 +1,5 @@
-#ifndef CUSTOM_HTTP_SESSION_H
-#define CUSTOM_HTTP_SESSION_H
+#ifndef CPPRESTSDK_CLIENT_H
+#define CPPRESTSDK_CLIENT_H
 
 #include <cpprest/http_client.h>
 

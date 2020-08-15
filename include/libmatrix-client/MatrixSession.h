@@ -5,12 +5,17 @@
 #include <memory>
 #include <string>
 #include <future>
+#include <unordered_map>
 
 #include <nlohmann/json.hpp>
 
 #include "HTTPClient.h"
+#include "Messages.h"
+
 
 namespace LibMatrix {
+
+using MessageBatchMap = std::unordered_map<std::string, std::shared_ptr<MessageBatch>>;
 
 namespace MatrixURLs {
 	/**	Format:
@@ -44,14 +49,13 @@ public:
 	MatrixSession();
 	explicit MatrixSession(std::string url);
 
+	std::future<MessageBatchMap> syncState(std::string token = "", nlohmann::json filter = {}, int timeout = 30000);
+
 	std::future<void> login(std::string uname, std::string password);
 	std::future<nlohmann::json> getRooms();
-	std::future<void> sendMessage(std::string roomID, std::string message);
-	
-	nlohmann::json getMessages(std::string batchNumber, bool firstTime = false);
-	nlohmann::json getMessages(bool firstTime = false);
+	//std::future<nlohmann::json> getRoomMessages(std::string roomId, int count=10, char directon='b');
 
-	nlohmann::json getAllRoomMessages(std::string roomId);
+	std::future<void> sendMessage(std::string roomID, std::string message);
 };// End MatrixSession Class
 
 }  // namespace LibMatrix

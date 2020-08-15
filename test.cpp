@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "include/libmatrix-client/MatrixSession.h"
+#include "include/libmatrix-client/Messages.h"
 
 using LibMatrix::MatrixSession;
 
@@ -19,7 +20,12 @@ int main(int argc, const char **argv) {
 	}
 	std::cout << "Logged in :)" << std::endl;
 
-	std::cout << client.getRooms().get().dump(4) << std::endl;
+	LibMatrix::MessageBatchMap result = client.syncState().get();
+
+	for(auto it = result.begin(); it != result.end(); ++it) {
+		std::cout << *(it->second) << std::endl;
+	}
+
 //	client.sendMessage(argv[4], argv[5]).get();
 	return 0;
 }

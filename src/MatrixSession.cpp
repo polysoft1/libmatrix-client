@@ -4,6 +4,7 @@
 #include <thread>
 #include <algorithm>
 #include <future>
+#include <unordered_map>
 
 #include <nlohmann/json.hpp>
 #include <fmt/core.h>  // Ignore CPPLintBear
@@ -11,10 +12,9 @@
 #include "MatrixSession.h"
 #include "HTTP.h"
 #include "HTTPClient.h"
+#include "Messages.h"
 
-using LibMatrix::HTTPMethod;
-using LibMatrix::MatrixSession;
-using LibMatrix::HTTPStatus;
+using namespace LibMatrix; // Ignore CPPLintBear
 
 using json = nlohmann::json;
 
@@ -162,3 +162,104 @@ std::future<void> MatrixSession::sendMessage(std::string roomID, std::string mes
 
 	return threadResult->get_future();
 }
+
+std::future<MessageBatchMap> MatrixSession::syncState(std::string token, nlohmann::json filter, int timeout) {
+	auto threadedResult = std::make_shared<std::promise<MessageBatchMap>>();
+
+	if(accessToken.empty()) {
+		threadedResult->set_exception(
+			std::make_exception_ptr(std::runtime_error("You need to log in first!")));
+	} else {
+		std::string urlParams = "?timeout={:d}";
+
+		if(!token.empty()) {
+			urlParams += "&since=" + token;
+		}
+
+		auto data = std::make_shared<HTTPRequestData>(HTTPMethod::GET,
+			fmt::format(MatrixURLs::SYNC + urlParams, timeout));
+
+		Headers reqHeaders;
+		reqHeaders["Authorization"] = "Bearer " + accessToken;
+
+		data->setHeaders(std::make_shared<Headers>(reqHeaders));
+
+		data->setResponseCallback([threadedResult](Response resp) {
+			MessageBatchMap output;
+			json body = json::parse(resp.data);
+
+			switch(resp.status) {
+			default:
+				threadedResult->set_exception(
+					std::make_exception_ptr(std::runtime_error("Error fetching state")));
+				std::cerr << static_cast<int>(resp.status) << std::endl;
+				break;
+			case HTTPStatus::HTTP_OK:
+				json rooms = body["rooms"]["join"];
+
+				for(auto i = rooms.begin(); i != rooms.end(); ++i) {
+					std::string roomId = i.key();
+					std::vector<Message> messages;
+
+					json parsedMessages = rooms[roomId]["timeline"]["events"];
+
+					for(auto j = parsedMessages.begin(); j != parsedMessages.end(); ++j) {
+							std::string id = (*j)["event_id"].get<std::string>();
+							std::string sender = (*j)["sender"].get<std::string>();
+							std::time_t ts = (*j)["origin_server_ts"].get<std::time_t>();
+							MessageStatus messageType = MessageStatus::RECEIVED;
+
+							std::string content;
+							json contentLocation = (*j)["content"];
+
+							if( contentLocation["body"].is_null() ) {
+								if(contentLocation["membership"].is_string()) {
+									std::string action = contentLocation["membership"].get<std::string>();
+
+									if(action.compare("join") == 0) {
+										action = "joined";
+									} else if (action.compare("leave") == 0) {
+										action = "left";
+									}
+
+									content = fmt::format("{:s} {:s} the room", contentLocation["displayname"].get<std::string>(), action);
+									messageType = MessageStatus::SYSTEM;
+								}
+							} else {
+								content = contentLocation["body"].get<std::string>();
+							}
+
+							messages.push_back(
+								Message{id, content, sender, ts, messageType});
+					}
+					std::shared_ptr<MessageBatch> batch = std::make_shared<MessageBatch>(roomId, messages,
+						rooms[roomId]["timeline"]["prev_batch"].get<std::string>(),
+						"");
+					output[roomId] = batch;
+				}
+				threadedResult->set_value(output);
+				break;
+			}
+		});
+		http->request(data);
+	}
+
+	return threadedResult->get_future();
+}
+/*
+std::future<nlohmann::json> MatrixSession::getRoomMessages(std::string roomId, int count, std::string from, char directon) {
+	auto threadedResult = std::make_shared<std::promise<nlohmann::json>>();
+	if(accessToken.empty()) {
+		threadedResult->set_exception(
+			std::make_exception_ptr(std::runtime_error("You need to log in first!")));
+	} else {
+		std::string urlParams = "?count={:d}";
+
+		if(!from.empty()) {
+			urlParams += "&from=" + from;
+		}
+		auto data = std::make_shared<HTTPRequestData>(HTTPMethod::GET,
+			fmt::format(MatrixURLs::GET_ROOM_MESSAGE_FORMAT + urlParams, roomId, count));
+	}
+}
+*/

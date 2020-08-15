@@ -1,6 +1,6 @@
+#ifdef USE_CPPRESTSDK
 #include "../include/libmatrix-client/CPPRESTSDKClient.h"
 
-//#ifdef USE_CPPRESTSDK
 #include <cpprest/rawptrstream.h>
 #include <cpprest/asyncrt_utils.h>
 #include <cpprest/http_client.h>
@@ -91,4 +91,4 @@ void CPPRESTSDKClient::request(std::shared_ptr<HTTPRequestData> data) {
 	});
 }
 
-//#endif
+#endif
