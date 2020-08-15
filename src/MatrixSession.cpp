@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <future>
 #include <unordered_map>
+#include <ctime>
 
 #include <nlohmann/json.hpp>
 #include <fmt/core.h>  // Ignore CPPLintBear
