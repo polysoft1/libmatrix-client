@@ -24,11 +24,11 @@ void MatrixSession::setHTTPCaller() {
 	http = std::make_unique<HTTPClient>(homeserverURL);
 }
 
-MatrixSession::MatrixSession() : homeserverURL("") {
+MatrixSession::MatrixSession() : homeserverURL(""), syncToken("") {
 	setHTTPCaller();
 }
 
-MatrixSession::MatrixSession(std::string url) : homeserverURL(url) {
+MatrixSession::MatrixSession(std::string url) : homeserverURL(url), syncToken("") {
 	setHTTPCaller();
 }
 
@@ -166,7 +166,7 @@ std::future<void> MatrixSession::sendMessage(std::string roomID, std::string mes
 	return threadResult->get_future();
 }
 
-std::future<RoomMap> MatrixSession::syncState(std::string token, nlohmann::json filter, int timeout) {
+std::future<RoomMap> MatrixSession::syncState(nlohmann::json filter, int timeout) {
 	auto threadedResult = std::make_shared<std::promise<RoomMap>>();
 
 	if(accessToken.empty()) {
@@ -175,8 +175,8 @@ std::future<RoomMap> MatrixSession::syncState(std::string token, nlohmann::json 
 	} else {
 		std::string urlParams = "?timeout={:d}";
 
-		if(!token.empty()) {
-			urlParams += "&since=" + token;
+		if(!syncToken.empty()) {
+			urlParams += "&since=" + syncToken;
 		}
 
 		auto data = std::make_shared<HTTPRequestData>(HTTPMethod::GET,
@@ -187,7 +187,7 @@ std::future<RoomMap> MatrixSession::syncState(std::string token, nlohmann::json 
 
 		data->setHeaders(std::make_shared<Headers>(reqHeaders));
 
-		data->setResponseCallback([threadedResult](Response resp) {
+		data->setResponseCallback([this, threadedResult](Response resp) {
 			RoomMap output;
 			json body = json::parse(resp.data);
 
@@ -198,6 +198,7 @@ std::future<RoomMap> MatrixSession::syncState(std::string token, nlohmann::json 
 				std::cerr << static_cast<int>(resp.status) << std::endl;
 				break;
 			case HTTPStatus::HTTP_OK:
+				syncToken = body["next_batch"];
 				json rooms = body["rooms"]["join"];
 
 				for(auto i = rooms.begin(); i != rooms.end(); ++i) {

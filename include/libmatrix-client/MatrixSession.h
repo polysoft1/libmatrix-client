@@ -40,6 +40,7 @@ private:
 	std::string homeserverURL;
 	std::string accessToken;
 	std::string deviceID;
+	std::string syncToken;
 
 	void setHTTPCaller();
 
@@ -49,7 +50,7 @@ public:
 	MatrixSession();
 	explicit MatrixSession(std::string url);
 
-	std::future<RoomMap> syncState(std::string token = "", nlohmann::json filter = {}, int timeout = 30000);
+	std::future<RoomMap> syncState(nlohmann::json filter = {}, int timeout = 30000);
 
 	std::future<void> login(std::string uname, std::string password);
 	//std::future<std::vector<Room>> getRooms();

@@ -33,6 +33,20 @@ int main(int argc, const char **argv) {
 		}
 	}
 
+	while(true) {
+		auto patch = client.syncState().get();
+		for(auto i = patch.begin(); i != patch.end(); ++i) {
+			std::cout << i->first << "\n";
+
+			std::cout << "\t" << i->second->name << "\n";
+			for(LibMatrix::Message msg : i->second->messages) {
+				std::cout << "\t" << "\t" << msg.id << "\n";
+				std::cout << "\t" << "\t" << msg.content << "\n";
+				std::cout << "\t" << "\t" << msg.sender << "\n";
+			}
+		}
+	}
+
 /*	LibMatrix::MessageBatchMap result = client.syncState().get();
 
 	for(auto it = result.begin(); it != result.end(); ++it) {
