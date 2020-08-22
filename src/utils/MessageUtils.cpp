@@ -11,9 +11,9 @@ std::string findRoomName(const json &body) {
 	std::time_t latestTs = 0;
 	std::string output = "";
 	for(auto i = body.begin(); i != body.end(); ++i) {
-		if((*i)["type"].get<std::string>().compare("m.room.name") == 0) { 
+		if((*i)["type"].get<std::string>().compare("m.room.name") == 0) {
 			std::time_t currentTs = (*i)["origin_server_ts"].get<std::time_t>();
-			
+
 			if(currentTs > latestTs) {
 				latestTs = currentTs;
 				output = (*i)["content"]["name"];

@@ -12,8 +12,10 @@
 namespace LibMatrix {
 class Room {
 public:
-	Room(std::string_view id, std::string name, const std::vector<Message> &messages, std::string prevToken = "", std::string nextToken = "") :
-		id(id), name(name), messages(messages), prevToken(prevToken), nextToken(nextToken) {}
+	Room(std::string_view id, std::string name,
+		const std::vector<Message> &messages, std::string prevToken = "",
+		std::string nextToken = "") :
+			id(id), name(name), messages(messages), prevToken(prevToken), nextToken(nextToken) {}
 	std::string_view id;
 	std::string name;
 	std::vector<Message> messages;
@@ -23,6 +25,6 @@ public:
 };
 
 using RoomMap = std::unordered_map<std::string, std::shared_ptr<LibMatrix::Room>>;
-}
+} // namespace LibMatrix
 
 #endif
