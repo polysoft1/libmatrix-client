@@ -14,6 +14,7 @@
 #include "HTTP.h"
 #include "HTTPClient.h"
 #include "Messages.h"
+#include "MessageUtils.h"
 
 using namespace LibMatrix; // Ignore CPPLintBear
 
@@ -82,9 +83,10 @@ std::future<void> MatrixSession::login(std::string uname, std::string password) 
 	return threadResult->get_future();
 }
 
-std::future<json> MatrixSession::getRooms() {
-	auto threadResult = std::make_shared<std::promise<json>>();
-
+/*
+std::future<std::vector<Room>> MatrixSession::getRooms() {
+	auto threadResult = std::make_shared< std::promise< std::vector<Room> > >();
+	std::vector<Room> result;
 	if(accessToken.empty()) {
 		threadResult->set_exception(
 			std::make_exception_ptr(
@@ -118,7 +120,7 @@ std::future<json> MatrixSession::getRooms() {
 	}
 
 	return threadResult->get_future();
-}
+}*/
 
 std::future<void> MatrixSession::sendMessage(std::string roomID, std::string message) {
 	auto threadResult = std::make_shared<std::promise<void>>();
@@ -164,8 +166,8 @@ std::future<void> MatrixSession::sendMessage(std::string roomID, std::string mes
 	return threadResult->get_future();
 }
 
-std::future<MessageBatchMap> MatrixSession::syncState(std::string token, nlohmann::json filter, int timeout) {
-	auto threadedResult = std::make_shared<std::promise<MessageBatchMap>>();
+std::future<RoomMap> MatrixSession::syncState(std::string token, nlohmann::json filter, int timeout) {
+	auto threadedResult = std::make_shared<std::promise<RoomMap>>();
 
 	if(accessToken.empty()) {
 		threadedResult->set_exception(
@@ -186,7 +188,7 @@ std::future<MessageBatchMap> MatrixSession::syncState(std::string token, nlohman
 		data->setHeaders(std::make_shared<Headers>(reqHeaders));
 
 		data->setResponseCallback([threadedResult](Response resp) {
-			MessageBatchMap output;
+			RoomMap output;
 			json body = json::parse(resp.data);
 
 			switch(resp.status) {
@@ -201,42 +203,13 @@ std::future<MessageBatchMap> MatrixSession::syncState(std::string token, nlohman
 				for(auto i = rooms.begin(); i != rooms.end(); ++i) {
 					std::string roomId = i.key();
 					std::vector<Message> messages;
+					parseMessages(messages, rooms[roomId]["timeline"]["events"]);
+					std::string name = findRoomName(rooms[roomId]["state"]["events"]);
 
-					json parsedMessages = rooms[roomId]["timeline"]["events"];
-
-					for(auto j = parsedMessages.begin(); j != parsedMessages.end(); ++j) {
-							std::string id = (*j)["event_id"].get<std::string>();
-							std::string sender = (*j)["sender"].get<std::string>();
-							std::time_t ts = (*j)["origin_server_ts"].get<std::time_t>();
-							MessageStatus messageType = MessageStatus::RECEIVED;
-
-							std::string content;
-							json contentLocation = (*j)["content"];
-
-							if( contentLocation["body"].is_null() ) {
-								if(contentLocation["membership"].is_string()) {
-									std::string action = contentLocation["membership"].get<std::string>();
-
-									if(action.compare("join") == 0) {
-										action = "joined";
-									} else if (action.compare("leave") == 0) {
-										action = "left";
-									}
-
-									content = fmt::format("{:s} {:s} the room", contentLocation["displayname"].get<std::string>(), action);
-									messageType = MessageStatus::SYSTEM;
-								}
-							} else {
-								content = contentLocation["body"].get<std::string>();
-							}
-
-							messages.push_back(
-								Message{id, content, sender, ts, messageType});
-					}
-					std::shared_ptr<MessageBatch> batch = std::make_shared<MessageBatch>(roomId, messages,
+					std::shared_ptr<Room> room = std::make_shared<Room>(roomId, name, messages,
 						rooms[roomId]["timeline"]["prev_batch"].get<std::string>(),
 						"");
-					output[roomId] = batch;
+					output[roomId] = room;
 				}
 				threadedResult->set_value(output);
 				break;

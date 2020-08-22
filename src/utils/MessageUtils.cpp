@@ -1,25 +1,57 @@
-#include <iostream>
+#include <fmt/format.h>
 
-#include "Messages.h"
+#include "MessageUtils.h"
+#include "Room.h"
 
-const char *NEWLINE = "\n";
-const char *TAB = "\t";
-
-using LibMatrix::MessageBatch;
 using LibMatrix::Message;
+using LibMatrix::MessageStatus;
+using json = nlohmann::json;
 
-std::ostream& LibMatrix::operator<<(std::ostream& output, const LibMatrix::MessageBatch& in) {
-	//Using NEWLINE to avoid flushing the buffer unnessarily
-	output << in.roomId << NEWLINE;
-
-	for(Message msg : in.messages) {
-		output << TAB << msg.id << NEWLINE;
-
-		output << TAB << TAB << msg.sender << NEWLINE;
-		output << TAB << TAB << msg.content << NEWLINE;
-		output << TAB << TAB << msg.timestamp << NEWLINE;
+std::string findRoomName(const json &body) {
+	std::time_t latestTs = 0;
+	std::string output = "";
+	for(auto i = body.begin(); i != body.end(); ++i) {
+		if((*i)["type"].get<std::string>().compare("m.room.name") == 0) { 
+			std::time_t currentTs = (*i)["origin_server_ts"].get<std::time_t>();
+			
+			if(currentTs > latestTs) {
+				latestTs = currentTs;
+				output = (*i)["content"]["name"];
+			}
+		}
 	}
 
-	output << std::string("Next batch: ") << in.nextBatch << NEWLINE;
-	return output << std::string("Previous batch: ") << in.prevBatch << NEWLINE;
+	return output;
+}
+
+void parseMessages(std::vector<Message> &messages, const json &body) {
+	for(auto i = body.begin(); i != body.end(); ++i) {
+			std::string id = (*i)["event_id"].get<std::string>();
+			std::string sender = (*i)["sender"].get<std::string>();
+			std::time_t ts = (*i)["origin_server_ts"].get<std::time_t>();
+			MessageStatus messageType = MessageStatus::RECEIVED;
+
+			std::string content;
+			json contentLocation = (*i)["content"];
+
+			if( contentLocation["body"].is_null() ) {
+				if(contentLocation["membership"].is_string()) {
+					std::string action = contentLocation["membership"].get<std::string>();
+
+					if(action.compare("join") == 0) {
+						action = "joined";
+					} else if (action.compare("leave") == 0) {
+						action = "left";
+					}
+
+					content = fmt::format("{:s} {:s} the room", contentLocation["displayname"].get<std::string>(), action);
+					messageType = MessageStatus::SYSTEM;
+				}
+			} else {
+				content = contentLocation["body"].get<std::string>();
+			}
+
+			messages.push_back(
+				Message{id, content, sender, ts, messageType});
+	}
 }

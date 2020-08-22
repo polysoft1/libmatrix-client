@@ -11,11 +11,10 @@
 
 #include "HTTPClient.h"
 #include "Messages.h"
+#include "Room.h"
 
 
 namespace LibMatrix {
-
-using MessageBatchMap = std::unordered_map<std::string, std::shared_ptr<MessageBatch>>;
 
 namespace MatrixURLs {
 	/**	Format:
@@ -32,6 +31,7 @@ namespace MatrixURLs {
 
 	const std::string SEND_MESSAGE_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/send/m.room.message/{:s}";
 	const std::string GET_ROOM_MESSAGE_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/messages";
+	const std::string GET_ROOM_ALIAS_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/aliases";
 }  // namespace MatrixURLs
 
 class MatrixSession {
@@ -49,10 +49,10 @@ public:
 	MatrixSession();
 	explicit MatrixSession(std::string url);
 
-	std::future<MessageBatchMap> syncState(std::string token = "", nlohmann::json filter = {}, int timeout = 30000);
+	std::future<RoomMap> syncState(std::string token = "", nlohmann::json filter = {}, int timeout = 30000);
 
 	std::future<void> login(std::string uname, std::string password);
-	std::future<nlohmann::json> getRooms();
+	//std::future<std::vector<Room>> getRooms();
 	//std::future<nlohmann::json> getRoomMessages(std::string roomId, int count=10, char directon='b');
 
 	std::future<void> sendMessage(std::string roomID, std::string message);
