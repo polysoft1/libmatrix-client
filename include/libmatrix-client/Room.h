@@ -2,7 +2,7 @@
 #define __ROOM_H__
 
 #include <string>
-#include <string_view>
+#include <string_view> // Ignore CPPLintBear
 #include <vector>
 #include <unordered_map>
 #include <memory>
