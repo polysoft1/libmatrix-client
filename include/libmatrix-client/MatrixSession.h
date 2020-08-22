@@ -53,8 +53,6 @@ public:
 	std::future<RoomMap> syncState(nlohmann::json filter = {}, int timeout = 30000);
 
 	std::future<void> login(std::string uname, std::string password);
-	//std::future<std::vector<Room>> getRooms();
-	//std::future<nlohmann::json> getRoomMessages(std::string roomId, int count=10, char directon='b');
 
 	std::future<void> sendMessage(std::string roomID, std::string message);
 };// End MatrixSession Class

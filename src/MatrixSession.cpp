@@ -83,45 +83,6 @@ std::future<void> MatrixSession::login(std::string uname, std::string password) 
 	return threadResult->get_future();
 }
 
-/*
-std::future<std::vector<Room>> MatrixSession::getRooms() {
-	auto threadResult = std::make_shared< std::promise< std::vector<Room> > >();
-	std::vector<Room> result;
-	if(accessToken.empty()) {
-		threadResult->set_exception(
-			std::make_exception_ptr(
-				std::runtime_error("You need to login first!")));
-	} else {
-		Headers reqHeaders;
-		reqHeaders["Authorization"] = "Bearer " + accessToken;
-
-		auto data = std::make_shared<HTTPRequestData>(HTTPMethod::GET, MatrixURLs::GET_ROOMS);
-		data->setHeaders(std::make_shared<Headers>(reqHeaders));
-
-		data->setResponseCallback([threadResult](Response result) {
-			json body = json::parse(result.data);
-
-			switch(result.status) {
-			case HTTPStatus::HTTP_OK:
-				threadResult->set_value(body);
-				break;
-			default:
-				std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
-				threadResult->set_exception(
-					std::make_exception_ptr(
-						std::runtime_error("Could not retrieve rooms")));
-			}
-		});
-		data->setErrorCallback([threadResult](std::string reason) {
-			threadResult->set_exception(
-				std::make_exception_ptr(std::runtime_error(reason)));
-		});
-		http->request(data);
-	}
-
-	return threadResult->get_future();
-}*/
-
 std::future<void> MatrixSession::sendMessage(std::string roomID, std::string message) {
 	auto threadResult = std::make_shared<std::promise<void>>();
 
@@ -221,20 +182,3 @@ std::future<RoomMap> MatrixSession::syncState(nlohmann::json filter, int timeout
 
 	return threadedResult->get_future();
 }
-/*
-std::future<nlohmann::json> MatrixSession::getRoomMessages(std::string roomId, int count, std::string from, char directon) {
-	auto threadedResult = std::make_shared<std::promise<nlohmann::json>>();
-	if(accessToken.empty()) {
-		threadedResult->set_exception(
-			std::make_exception_ptr(std::runtime_error("You need to log in first!")));
-	} else {
-		std::string urlParams = "?count={:d}";
-
-		if(!from.empty()) {
-			urlParams += "&from=" + from;
-		}
-		auto data = std::make_shared<HTTPRequestData>(HTTPMethod::GET,
-			fmt::format(MatrixURLs::GET_ROOM_MESSAGE_FORMAT + urlParams, roomId, count));
-	}
-}
-*/
