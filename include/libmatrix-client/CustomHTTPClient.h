@@ -31,15 +31,15 @@ public:
 	 * This should be statically set in a C++ file of
 	 * the custom class.
 	 */
-	static std::function<HTTPClientBase*()> initializer;
+	static std::function<HTTPClientBase* (const std::string& basePath)> initializer;
 
-	CustomHTTPClient()
-		: wrappedClient(initializer()) {}
+	CustomHTTPClient(const std::string& basePath)
+		: wrappedClient(initializer(basePath)) {}
 
 	virtual void request(std::shared_ptr<HTTPRequestData> method) { wrappedClient->request(method);  }
 };
 
-typedef CustomHTTPClient HTTPRequest
+typedef CustomHTTPClient HTTPClient;
 
 }  // namespace LibMatrix
 

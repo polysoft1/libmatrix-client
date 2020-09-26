@@ -1,17 +1,32 @@
 cmake_minimum_required (VERSION 2.8.11)
 project (libmatrix-client)
 
+set(OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/target/)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT_DIR})
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${OUTPUT_DIR})
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${OUTPUT_DIR})
+SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${OUTPUT_DIR})
+SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${OUTPUT_DIR})
+SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${OUTPUT_DIR})
+SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${OUTPUT_DIR})
+
 # Options
 option(USE_CONAN "Use the Conan package manager" on)
 option(USE_CPPRESTSDK "Use CPPRESTSDK for HTTP" on)
+option(USE_CUSTOM_HTTP "Use custom HTTP session" off)
 
-set(source_files test.cpp src/CPPRESTSDKClient.cpp src/HTTP.cpp src/MatrixSession.cpp src/utils/MessageUtils.cpp)
-add_executable(libmatrix-client ${source_files})
+set(source_files src/CPPRESTSDKClient.cpp src/CustomHTTPClient.cpp src/HTTP.cpp src/MatrixSession.cpp)
+add_library(libmatrix-client SHARED ${source_files})
+add_library(libmatrix-client-static STATIC ${source_files})
 
 set_target_properties(libmatrix-client PROPERTIES LINKER_LANGUAGE CXX)
 set_target_properties(libmatrix-client PROPERTIES CXX_STANDARD 17)
 
 target_include_directories(libmatrix-client PUBLIC "include/libmatrix-client")
+target_include_directories(libmatrix-client-static PUBLIC "include/libmatrix-client")
 
 # define the project
 set(CMAKE_CXX_STANDARD 17)
@@ -30,8 +45,18 @@ if(USE_CONAN)
 
     target_include_directories(libmatrix-client PRIVATE ${CONAN_INCLUDE_DIRS})
     conan_target_link_libraries(libmatrix-client)
+else()
+    find_package(nlohmann_json CONFIG REQUIRED)
+    target_link_libraries(libmatrix-client PRIVATE nlohmann_json nlohmann_json::nlohmann_json)
+    target_link_libraries(libmatrix-client-static PRIVATE nlohmann_json nlohmann_json::nlohmann_json)
 
-    if (USE_CPPRESTSDK)
-        add_compile_definitions(USE_CPPRESTSDK)
-    endif()
+    find_package(fmt CONFIG REQUIRED)
+    target_link_libraries(libmatrix-client PRIVATE fmt::fmt fmt::fmt-header-only)
+    target_link_libraries(libmatrix-client-static PRIVATE fmt::fmt fmt::fmt-header-only)
+endif()
+
+if (USE_CPPRESTSDK)
+    add_compile_definitions(USE_CPPRESTSDK)
+elseif (USE_CUSTOM_HTTP_SESSION)
+    add_compile_definitions(USE_CUSTOM_HTTP_SESSION)
 endif()
