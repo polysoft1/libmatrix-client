@@ -13,6 +13,8 @@
 #include "Messages.h"
 #include "Room.h"
 
+#include "DLL.h"
+
 
 namespace LibMatrix {
 
@@ -50,11 +52,11 @@ public:
 	MatrixSession();
 	explicit MatrixSession(std::string url);
 
-	std::future<RoomMap> syncState(nlohmann::json filter = {}, int timeout = 30000);
+	std::future<RoomMap> DLL_EXPORT syncState(nlohmann::json filter = {}, int timeout = 30000);
 
-	std::future<void> login(std::string uname, std::string password);
+	std::future<void> DLL_EXPORT login(std::string uname, std::string password);
 
-	std::future<void> sendMessage(std::string roomID, std::string message);
+	std::future<void> DLL_EXPORT sendMessage(std::string roomID, std::string message);
 };// End MatrixSession Class
 
 }  // namespace LibMatrix
