@@ -7,3 +7,4 @@ std::function<HTTPClientBase* (const std::string& basePath)> LibMatrix::CustomHT
 	= std::function<HTTPClientBase* (const std::string& basePath)>();
 
 #endif
+

@@ -33,7 +33,7 @@ public:
 	 */
 	static std::function<HTTPClientBase* (const std::string& basePath)> initializer;
 
-	CustomHTTPClient(const std::string& basePath)
+	explicit CustomHTTPClient(const std::string& basePath)
 		: wrappedClient(initializer(basePath)) {}
 
 	virtual void request(std::shared_ptr<HTTPRequestData> method) { wrappedClient->request(method);  }
