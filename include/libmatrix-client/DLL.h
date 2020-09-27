@@ -1,5 +1,5 @@
-#ifndef DLL
-#define DLL
+#ifndef LIBMATRIX_DLL_H
+#define LIBMATRIX_DLL_H
 
 /**
  * This is used for DLL exporting.
