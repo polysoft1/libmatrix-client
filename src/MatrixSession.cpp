@@ -93,7 +93,7 @@ std::future<void> MatrixSession::sendMessage(std::string roomID, std::string mes
 	} else {
 		//TODO(kdvalin) Update transaction IDs to be unique
 		auto data = std::make_shared<HTTPRequestData>(HTTPMethod::PUT,
-				fmt::format(MatrixURLs::SEND_MESSAGE_FORMAT, roomID, "m1234557"));
+				fmt::format(MatrixURLs::SEND_MESSAGE_FORMAT, roomID, "m" + nextTransactionID++));
 		json body{
 			{"msgtype", "m.text"},
 			{"body", message}

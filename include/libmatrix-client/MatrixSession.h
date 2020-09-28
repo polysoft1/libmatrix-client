@@ -44,6 +44,8 @@ private:
 	std::string deviceID;
 	std::string syncToken;
 
+	int nextTransactionID = 999999;
+
 	void setHTTPCaller();
 
 	static constexpr std::string_view USER_TYPE = "m.id.user";
