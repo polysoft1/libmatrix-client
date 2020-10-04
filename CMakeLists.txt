@@ -22,14 +22,18 @@ set(source_files src/CPPRESTSDKClient.cpp src/CustomHTTPClient.cpp src/HTTP.cpp
     src/MatrixSession.cpp src/utils/MessageUtils.cpp)
 add_library(libmatrix-client SHARED ${source_files})
 add_library(libmatrix-client-static STATIC ${source_files})
+add_executable(driver ${source_files} test.cpp)
 
 set_target_properties(libmatrix-client PROPERTIES LINKER_LANGUAGE CXX)
 set_target_properties(libmatrix-client PROPERTIES CXX_STANDARD 17)
 set_target_properties(libmatrix-client-static PROPERTIES LINKER_LANGUAGE CXX)
 set_target_properties(libmatrix-client-static PROPERTIES CXX_STANDARD 17)
+set_target_properties(driver PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties(driver PROPERTIES CXX_STANDARD 17)
 
 target_include_directories(libmatrix-client PUBLIC "include/libmatrix-client")
 target_include_directories(libmatrix-client-static PUBLIC "include/libmatrix-client")
+target_include_directories(driver PUBLIC "include/libmatrix-client")
 
 # define the project
 set(CMAKE_CXX_STANDARD 17)
@@ -53,8 +57,10 @@ if(USE_CONAN)
 
     target_include_directories(libmatrix-client PRIVATE ${CONAN_INCLUDE_DIRS})
     target_include_directories(libmatrix-client-static PRIVATE ${CONAN_INCLUDE_DIRS})
+    target_include_directories(driver PRIVATE ${CONAN_INCLUDE_DIRS})
     conan_target_link_libraries(libmatrix-client)
     conan_target_link_libraries(libmatrix-client-static)
+    conan_target_link_libraries(driver)
 else()
     if (USE_CPPRESTSDK)
         find_package(cpprestsdk CONFIG REQUIRED)

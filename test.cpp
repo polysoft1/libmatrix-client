@@ -43,6 +43,7 @@ int main(int argc, const char **argv) {
 				std::cout << "\t" << "\t" << msg.id << "\n";
 				std::cout << "\t" << "\t" << msg.content << "\n";
 				std::cout << "\t" << "\t" << msg.sender << "\n";
+				client.updateReadReceipt(i->second->id, *(i->second->messages.rbegin()) ).get();
 			}
 		}
 	}

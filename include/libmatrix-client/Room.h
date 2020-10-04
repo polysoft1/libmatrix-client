@@ -16,7 +16,7 @@ public:
 		const std::vector<Message> &messages, std::string prevToken = "",
 		std::string nextToken = "") :
 			id(id), name(name), messages(messages), prevToken(prevToken), nextToken(nextToken) {}
-	std::string_view id;
+	std::string id;
 	std::string name;
 	std::vector<Message> messages;
 

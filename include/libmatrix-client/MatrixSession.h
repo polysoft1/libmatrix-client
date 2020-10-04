@@ -34,6 +34,7 @@ namespace MatrixURLs {
 	const std::string SEND_MESSAGE_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/send/m.room.message/{:s}";
 	const std::string GET_ROOM_MESSAGE_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/messages";
 	const std::string GET_ROOM_ALIAS_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/aliases";
+	const std::string READ_MARKER_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/read_markers";
 }  // namespace MatrixURLs
 
 class MatrixSession {
@@ -50,6 +51,7 @@ private:
 
 	static constexpr std::string_view USER_TYPE = "m.id.user";
 	static constexpr std::string_view LOGIN_TYPE = "m.login.password";
+
 public:
 	MatrixSession();
 	explicit MatrixSession(std::string url);
@@ -59,6 +61,8 @@ public:
 	std::future<void> DLL_EXPORT login(std::string uname, std::string password);
 
 	std::future<void> DLL_EXPORT sendMessage(std::string roomID, std::string message);
+
+	std::future<void> DLL_EXPORT updateReadReceipt(std::string roomID, LibMatrix::Message message);
 };// End MatrixSession Class
 
 }  // namespace LibMatrix

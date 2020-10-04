@@ -29,6 +29,7 @@ void parseMessages(std::vector<Message> &messages, const json &body) {
 			std::string id = (*i)["event_id"].get<std::string>();
 			std::string sender = (*i)["sender"].get<std::string>();
 			std::time_t ts = (*i)["origin_server_ts"].get<std::time_t>();
+
 			MessageStatus messageType = MessageStatus::RECEIVED;
 
 			std::string content;
@@ -37,17 +38,18 @@ void parseMessages(std::vector<Message> &messages, const json &body) {
 			if( contentLocation["body"].is_null() ) {
 				if(contentLocation["membership"].is_string()) {
 					std::string action = contentLocation["membership"].get<std::string>();
-
-					if(action.compare("join") == 0) {
+					std::string name = contentLocation["displayname"].is_string() ?
+						contentLocation["displayname"].get<std::string>() : "An Unknown User";
+					if (action.compare("join") == 0) {
 						action = "joined";
 					} else if (action.compare("leave") == 0) {
 						action = "left";
 					}
 
-					content = fmt::format("{:s} {:s} the room", contentLocation["displayname"].get<std::string>(), action);
+					content = fmt::format("{:s} {:s} the room", name, action);
 					messageType = MessageStatus::SYSTEM;
 				}
-			} else {
+			} else if (contentLocation["body"].is_string()) {
 				content = contentLocation["body"].get<std::string>();
 			}
 

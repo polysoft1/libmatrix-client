@@ -39,7 +39,7 @@ std::future<void> MatrixSession::login(std::string uname, std::string password) 
 		{"type", MatrixSession::LOGIN_TYPE},
 		{"password", password},
 		//TODO(kdvalin) Make this configurable
-		{"initial_device_display_name", "Testing LibMatrix"},
+		{"initial_device_display_name", "Testing LibMatrix123"},
 		{"identifier",
 			{
 				{"type", MatrixSession::USER_TYPE},
@@ -163,11 +163,16 @@ std::future<RoomMap> MatrixSession::syncState(nlohmann::json filter, int timeout
 				json rooms = body["rooms"]["join"];
 
 				for(auto i = rooms.begin(); i != rooms.end(); ++i) {
+					std::cout << "Getting id" << std::endl;
 					std::string roomId = i.key();
+					std::cout << "Got ID, it is " << roomId << std::endl;
 					std::vector<Message> messages;
-					parseMessages(messages, rooms[roomId]["timeline"]["events"]);
+					std::cout << "Getting room name" << std::endl;
 					std::string name = findRoomName(rooms[roomId]["state"]["events"]);
-
+					std::cout << "Found room name it was " << name << std::endl;
+					std::cout << "About to parse msgs" << std::endl;
+					parseMessages(messages, rooms[roomId]["timeline"]["events"]);
+					std::cout << "Finished parsing msgs" << std::endl;
 					std::shared_ptr<Room> room = std::make_shared<Room>(roomId, name, messages,
 						rooms[roomId]["timeline"]["prev_batch"].get<std::string>(),
 						"");
@@ -175,6 +180,45 @@ std::future<RoomMap> MatrixSession::syncState(nlohmann::json filter, int timeout
 				}
 				threadedResult->set_value(output);
 				break;
+			}
+		});
+		http->request(data);
+	}
+
+	return threadedResult->get_future();
+}
+
+std::future<void> MatrixSession::updateReadReceipt(std::string roomID, LibMatrix::Message message) {
+	auto threadedResult = std::make_shared<std::promise<void>>();
+
+	if(accessToken.empty()) {
+		threadedResult->set_exception(
+			std::make_exception_ptr(std::runtime_error("You need to log in first!")));
+	} else if (roomID.empty()) {
+		threadedResult->set_value();
+	} else {
+		json body = {
+			{"m.fully_read", message.id},
+			{"m.read", message.id}
+		};
+		Headers reqHeaders;
+		reqHeaders["Authorization"] = "Bearer " + accessToken;
+
+		std::string url = fmt::format(MatrixURLs::READ_MARKER_FORMAT, roomID);
+		auto data = std::make_shared<HTTPRequestData>(HTTPMethod::POST, url);
+		data->setBody(body.dump());
+		data->setHeaders(std::make_shared<Headers>(reqHeaders));
+
+		data->setResponseCallback([this, threadedResult](Response resp) {
+			switch(resp.status) {
+				default:
+					threadedResult->set_exception(
+						std::make_exception_ptr(std::runtime_error("Error fetching state")));
+					std::cerr << static_cast<int>(resp.status) << std::endl;
+					break;
+				case HTTPStatus::HTTP_OK:
+					threadedResult->set_value();
+					break;
 			}
 		});
 		http->request(data);
