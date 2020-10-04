@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "Users.h"
 #include "include/libmatrix-client/MatrixSession.h"
 #include "include/libmatrix-client/Messages.h"
 #include "MessageUtils.h"
@@ -24,7 +25,13 @@ int main(int argc, const char **argv) {
 	auto rooms = client.syncState().get();
 	for(auto i = rooms.begin(); i != rooms.end(); ++i) {
 		std::cout << i->first << "\n";
-
+		//Print users
+		auto users = client.getRoomMembers(i->first).get();
+		for(LibMatrix::User i : users) {
+			std::cout << "\t" << i.id << std::endl;
+			std::cout << "\t\t" << i.displayName << std::endl;
+			std::cout << "\t\t" << i.avatarURL << std::endl;
+		}
 		std::cout << "\t" << i->second->name << "\n";
 		for(LibMatrix::Message msg : i->second->messages) {
 			std::cout << "\t" << "\t" << msg.id << "\n";

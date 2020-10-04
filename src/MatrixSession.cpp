@@ -15,6 +15,7 @@
 #include "HTTPClient.h"
 #include "Messages.h"
 #include "MessageUtils.h"
+#include "UserUtils.h"
 
 using namespace LibMatrix; // Ignore CPPLintBear
 
@@ -211,6 +212,48 @@ std::future<void> MatrixSession::updateReadReceipt(std::string roomID, LibMatrix
 					break;
 				case HTTPStatus::HTTP_OK:
 					threadedResult->set_value();
+					break;
+			}
+		});
+		http->request(data);
+	}
+
+	return threadedResult->get_future();
+}
+
+std::future<std::vector<User>> MatrixSession::getRoomMembers(std::string roomID) {
+	auto threadedResult = std::make_shared<std::promise<std::vector<User>>>();
+
+	if (accessToken.empty()) {
+		threadedResult->set_exception(
+			std::make_exception_ptr(std::runtime_error("You need to log in first!")));
+	} else if (roomID.empty()) {
+		threadedResult->set_exception(
+			std::make_exception_ptr(std::runtime_error("Invalid room ID sent!")));
+	} else {
+		Headers reqHeaders;
+		reqHeaders["Authorization"] = "Bearer " + accessToken;
+
+		std::string url = fmt::format(MatrixURLs::GET_ROOM_MEMBERS_FORMAT, roomID);
+		auto data = std::make_shared<HTTPRequestData>(HTTPMethod::GET, url);
+		data->setHeaders(std::make_shared<Headers>(reqHeaders));
+
+		data->setResponseCallback([this, threadedResult](Response resp) {
+			json body = json::parse(resp.data);
+			switch(resp.status) {
+				default:
+					threadedResult->set_exception(
+						std::make_exception_ptr(std::runtime_error("Error fetching state")));
+					std::cerr << static_cast<int>(resp.status) << std::endl;
+					break;
+				case HTTPStatus::HTTP_OK:
+					json members = body["joined"];
+					std::vector<User> output;
+
+					for(auto i = members.begin(); i != members.end(); ++i) {
+						output.push_back(parseUser(homeserverURL, i.key(), *i));
+					}
+					threadedResult->set_value(output);
 					break;
 			}
 		});
