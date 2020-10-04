@@ -1,6 +1,8 @@
 #ifndef CUSTOM_HTTP_SESSION_H
 #define CUSTOM_HTTP_SESSION_H
 
+#ifdef USE_CUSTOM_HTTP_SESSION
+
 #include "HTTP.h"
 #include <functional>
 #include <memory>
@@ -29,17 +31,17 @@ public:
 	 * This should be statically set in a C++ file of
 	 * the custom class.
 	 */
-	static std::function<HTTPClientBase*()> initializer;
+	static std::function<HTTPClientBase* (const std::string& basePath)> initializer;
 
-	CustomHTTPClient()
-		: wrappedClient(initializer()) {}
+	explicit CustomHTTPClient(const std::string& basePath)
+		: wrappedClient(initializer(basePath)) {}
 
 	virtual void request(std::shared_ptr<HTTPRequestData> method) { wrappedClient->request(method);  }
 };
 
-typedef CustomHTTPClient HTTPRequest
+typedef CustomHTTPClient HTTPClient;
 
 }  // namespace LibMatrix
 
 #endif
-
+#endif

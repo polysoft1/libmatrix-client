@@ -133,6 +133,7 @@ public:
 };
 
 class HTTPClientBase {
+public:
 	/**
 	 * This is a non-blocking function to start the request.
 	 * The callback stored in the request data will be called when it is done.

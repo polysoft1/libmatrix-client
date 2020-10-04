@@ -5,10 +5,16 @@
 #include <memory>
 #include <string>
 #include <future>
+#include <unordered_map>
 
 #include <nlohmann/json.hpp>
 
 #include "HTTPClient.h"
+#include "Messages.h"
+#include "Room.h"
+
+#include "DLL.h"
+
 
 namespace LibMatrix {
 
@@ -23,8 +29,12 @@ namespace MatrixURLs {
 
 	const std::string LOGIN = CLIENT_PREFIX + "/login";
 	const std::string GET_ROOMS = CLIENT_PREFIX + "/joined_rooms";
+	const std::string SYNC = CLIENT_PREFIX + "/sync";
 
 	const std::string SEND_MESSAGE_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/send/m.room.message/{:s}";
+	const std::string GET_ROOM_MESSAGE_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/messages";
+	const std::string GET_ROOM_ALIAS_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/aliases";
+	const std::string READ_MARKER_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/read_markers";
 }  // namespace MatrixURLs
 
 class MatrixSession {
@@ -33,18 +43,26 @@ private:
 	std::string homeserverURL;
 	std::string accessToken;
 	std::string deviceID;
+	std::string syncToken;
+
+	int nextTransactionID = 999999;
 
 	void setHTTPCaller();
 
 	static constexpr std::string_view USER_TYPE = "m.id.user";
 	static constexpr std::string_view LOGIN_TYPE = "m.login.password";
+
 public:
 	MatrixSession();
 	explicit MatrixSession(std::string url);
 
-	std::future<void> login(std::string uname, std::string password);
-	std::future<nlohmann::json> getRooms();
-	std::future<void> sendMessage(std::string roomID, std::string message);
+	std::future<RoomMap> DLL_EXPORT syncState(nlohmann::json filter = {}, int timeout = 30000);
+
+	std::future<void> DLL_EXPORT login(std::string uname, std::string password);
+
+	std::future<void> DLL_EXPORT sendMessage(std::string roomID, std::string message);
+
+	std::future<void> DLL_EXPORT updateReadReceipt(std::string roomID, LibMatrix::Message message);
 };// End MatrixSession Class
 
 }  // namespace LibMatrix

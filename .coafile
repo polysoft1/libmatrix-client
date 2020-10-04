@@ -1,7 +1,7 @@
 [linting]
 bears = SpaceConsistencyBear,CPPLintBear
-files = **/*.cpp,**/*.h,**/*.hpp
+files = **/*.cpp,**/*.h
 ignore = build/**/*.cpp,out/**/*.cpp,**/build/**/*.cpp
 use_spaces = False
-cpplint_ignore = legal/copyright,whitespace/tab,whitespace/ending_newline,build/header_guard,whitespace/indent,build/c++11,whitespace/comments
+cpplint_ignore = legal/copyright,whitespace/tab,whitespace/ending_newline,build/header_guard,whitespace/indent,build/c++11,whitespace/comments,runtime/references
 max_line_length = 120
