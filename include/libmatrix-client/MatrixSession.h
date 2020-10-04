@@ -6,12 +6,14 @@
 #include <string>
 #include <future>
 #include <unordered_map>
+#include <vector>
 
 #include <nlohmann/json.hpp>
 
 #include "HTTPClient.h"
 #include "Messages.h"
 #include "Room.h"
+#include "Users.h"
 
 #include "DLL.h"
 
@@ -26,6 +28,7 @@ namespace MatrixURLs {
 	*		Categories should be grouped together and separated from each other by 1 newline
 	*/
 	const std::string CLIENT_PREFIX = "/_matrix/client/r0";
+	const std::string MEDIA_PREFIX = "/_matrix/media/r0";
 
 	const std::string LOGIN = CLIENT_PREFIX + "/login";
 	const std::string GET_ROOMS = CLIENT_PREFIX + "/joined_rooms";
@@ -35,6 +38,10 @@ namespace MatrixURLs {
 	const std::string GET_ROOM_MESSAGE_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/messages";
 	const std::string GET_ROOM_ALIAS_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/aliases";
 	const std::string READ_MARKER_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/read_markers";
+	const std::string GET_ROOM_MEMBERS_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/joined_members";
+
+	const std::string THUMBNAIL_URL_FORMAT = MEDIA_PREFIX + "/thumbnail/{:s}/{:s}";
+
 }  // namespace MatrixURLs
 
 class MatrixSession {
@@ -63,6 +70,7 @@ public:
 	std::future<void> DLL_EXPORT sendMessage(std::string roomID, std::string message);
 
 	std::future<void> DLL_EXPORT updateReadReceipt(std::string roomID, LibMatrix::Message message);
+	std::future<std::vector<User>> DLL_EXPORT getRoomMembers(std::string roomID);
 };// End MatrixSession Class
 
 }  // namespace LibMatrix
