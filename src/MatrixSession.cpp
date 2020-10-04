@@ -57,7 +57,6 @@ std::future<void> MatrixSession::login(std::string uname, std::string password) 
 	data->setHeaders(std::make_shared<Headers>(headers));
 
 	data->setResponseCallback([this, threadResult](Response result) {
-		std::cout << "Made it into the sucessful callback" << std::endl;
 		json body = json::parse(result.data);
 
 		switch(result.status) {
@@ -73,7 +72,6 @@ std::future<void> MatrixSession::login(std::string uname, std::string password) 
 		}
 	});
 	data->setErrorCallback([threadResult](std::string reason) {
-		std::cout << "Made it into the sucessful callback" << std::endl;
 		threadResult->set_exception(
 			std::make_exception_ptr(
 				std::runtime_error(reason)));
@@ -163,16 +161,11 @@ std::future<RoomMap> MatrixSession::syncState(nlohmann::json filter, int timeout
 				json rooms = body["rooms"]["join"];
 
 				for(auto i = rooms.begin(); i != rooms.end(); ++i) {
-					std::cout << "Getting id" << std::endl;
 					std::string roomId = i.key();
-					std::cout << "Got ID, it is " << roomId << std::endl;
 					std::vector<Message> messages;
-					std::cout << "Getting room name" << std::endl;
+
 					std::string name = findRoomName(rooms[roomId]["state"]["events"]);
-					std::cout << "Found room name it was " << name << std::endl;
-					std::cout << "About to parse msgs" << std::endl;
 					parseMessages(messages, rooms[roomId]["timeline"]["events"]);
-					std::cout << "Finished parsing msgs" << std::endl;
 					std::shared_ptr<Room> room = std::make_shared<Room>(roomId, name, messages,
 						rooms[roomId]["timeline"]["prev_batch"].get<std::string>(),
 						"");
