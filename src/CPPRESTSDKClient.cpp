@@ -1,4 +1,4 @@
-#ifdef POLYTRIX_USE_CPPRESTSDK
+#ifdef LIBMATRIX_USE_CPPRESTSDK
 #include "../include/libmatrix-client/CPPRESTSDKClient.h"
 
 #include <cpprest/rawptrstream.h>

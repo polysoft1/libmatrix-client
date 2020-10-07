@@ -3,11 +3,11 @@
 
 // All included headers should typedef their class to make it HTTPSession
 
-#ifdef POLYTRIX_USE_CUSTOM_HTTP_SESSION
+#ifdef LIBMATRIX_USE_CUSTOM_HTTP_SESSION
 
 	#include "CustomHTTPClient.h"
 
-#elif defined(POLYTRIX_USE_CPPRESTSDK)
+#elif defined(LIBMATRIX_USE_CPPRESTSDK)
 
 	#include "CPPRESTSDKClient.h"
 
