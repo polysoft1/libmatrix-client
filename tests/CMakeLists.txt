@@ -31,5 +31,5 @@ if(USE_CONAN)
     target_include_directories(libmatrix-tests PRIVATE ${CONAN_INCLUDE_DIRS})
     conan_target_link_libraries(libmatrix-tests)
 
-    add_compile_definitions(USE_CPPRESTSDK)
+    add_compile_definitions(POLYTRIX_USE_CPPRESTSDK)
 endif()
