@@ -1,4 +1,4 @@
-#ifdef USE_CUSTOM_HTTP_SESSION
+#ifdef LIBMATRIX_USE_CUSTOM_HTTP_SESSION
 #include "CustomHTTPClient.h"
 
 using LibMatrix::HTTPClientBase;
