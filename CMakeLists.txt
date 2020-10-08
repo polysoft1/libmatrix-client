@@ -66,15 +66,18 @@ else()
         find_package(cpprestsdk CONFIG REQUIRED)
         target_link_libraries(libmatrix-client PRIVATE cpprestsdk::cpprest)
         target_link_libraries(libmatrix-client-static PRIVATE cpprestsdk::cpprest)
+        target_link_libraries(driver PRIVATE cpprestsdk::cpprest)
     endif()
 
     find_package(nlohmann_json CONFIG REQUIRED)
     target_link_libraries(libmatrix-client PRIVATE nlohmann_json nlohmann_json::nlohmann_json)
     target_link_libraries(libmatrix-client-static PRIVATE nlohmann_json nlohmann_json::nlohmann_json)
+    target_link_libraries(driver PRIVATE nlohmann_json nlohmann_json::nlohmann_json)
 
     find_package(fmt CONFIG REQUIRED)
     target_link_libraries(libmatrix-client PRIVATE fmt::fmt fmt::fmt-header-only)
     target_link_libraries(libmatrix-client-static PRIVATE fmt::fmt fmt::fmt-header-only)
+    target_link_libraries(driver PRIVATE fmt::fmt fmt::fmt-header-only)
 endif()
 
 if (USE_CPPRESTSDK)
