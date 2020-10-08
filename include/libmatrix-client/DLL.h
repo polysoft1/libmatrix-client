@@ -8,15 +8,15 @@
 #if defined (_MSC_VER)
 #pragma warning(disable: 4251)
 #endif
-#if defined(DLL_EXPORT)
-#define DLL_EXPORT __declspec(dllexport)
+#if defined(LibMatrix_EXPORT)
+#define LIBMATRIX_DLL_EXPORT __declspec(dllexport)
  //#pragma message("dll export")
 #else
-#define DLL_EXPORT __declspec(dllimport) __stdcall
+#define LIBMATRIX_DLL_EXPORT __declspec(dllimport)
  //#pragma message("dll import")
 #endif
 #else
-#define DLL_EXPORT
+#define LIBMATRIX_DLL_EXPORT
 #endif
 
 #endif /* end of include guard: DLLS */

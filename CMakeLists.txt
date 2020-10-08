@@ -80,6 +80,11 @@ else()
     target_link_libraries(driver PRIVATE fmt::fmt fmt::fmt-header-only)
 endif()
 
+if (WIN32)
+    target_compile_definitions(libmatrix-client PUBLIC BUILD_SHARED_LIBS)
+    target_compile_definitions(libmatrix-client PUBLIC LibMatrix_EXPORT)
+endif()
+
 if (USE_CPPRESTSDK)
     add_compile_definitions(LIBMATRIX_USE_CPPRESTSDK)
 elseif (USE_CUSTOM_HTTP)
