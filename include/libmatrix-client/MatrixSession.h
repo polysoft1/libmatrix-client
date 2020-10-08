@@ -63,14 +63,14 @@ public:
 	MatrixSession();
 	explicit MatrixSession(std::string url);
 
-	std::future<RoomMap> DLL_EXPORT syncState(nlohmann::json filter = {}, int timeout = 30000);
+	std::future<RoomMap> LIBMATRIX_DLL_EXPORT syncState(nlohmann::json filter = {}, int timeout = 30000);
 
-	std::future<void> DLL_EXPORT login(std::string uname, std::string password);
+	std::future<void> LIBMATRIX_DLL_EXPORT login(std::string uname, std::string password);
 
-	std::future<void> DLL_EXPORT sendMessage(std::string roomID, std::string message);
+	std::future<void> LIBMATRIX_DLL_EXPORT sendMessage(std::string roomID, std::string message);
 
-	std::future<void> DLL_EXPORT updateReadReceipt(std::string roomID, LibMatrix::Message message);
-	std::future<std::vector<User>> DLL_EXPORT getRoomMembers(std::string roomID);
+	std::future<void> LIBMATRIX_DLL_EXPORT updateReadReceipt(std::string roomID, LibMatrix::Message message);
+	std::future<std::vector<User>> LIBMATRIX_DLL_EXPORT getRoomMembers(std::string roomID);
 };// End MatrixSession Class
 
 }  // namespace LibMatrix
