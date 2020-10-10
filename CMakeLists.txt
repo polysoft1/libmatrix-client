@@ -17,8 +17,6 @@ SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${OUTPUT_DIR})
 option(USE_CONAN "Use the Conan package manager" on)
 option(USE_CPPRESTSDK "Use CPPRESTSDK for HTTP" on)
 option(USE_CUSTOM_HTTP "Use custom HTTP session" off)
-option(USE_SYSTEM_OLM "Use the system version of OLM" off)
-option(OLM_TESTS "Generate tests for OLM (fetching from source only)" off)
 
 set(source_files src/CPPRESTSDKClient.cpp src/CustomHTTPClient.cpp src/HTTP.cpp
     src/MatrixSession.cpp src/utils/MessageUtils.cpp src/utils/UserUtils.cpp)
@@ -52,34 +50,6 @@ IF (WIN32)
     target_compile_definitions(libmatrix-client PUBLIC BUILD_SHARED_LIBS)
     ADD_DEFINITIONS("-DPolyChat_EXPORT")
 ENDIF (WIN32)
-
-if(USE_SYSTEM_OLM)
-    find_package(Olm 3)
-	set_package_properties(Olm PROPERTIES
-		DESCRIPTION "An implementation of the Double Ratchet cryptographic ratchet"
-		URL "https://git.matrix.org/git/olm/about/"
-		TYPE REQUIRED
-    )
-else()
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-    SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR})
-    SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR})
-
-    include(FetchContent)
-    FetchContent_Declare(
-        Olm
-        GIT_REPOSITORY https://gitlab.matrix.org/matrix-org/olm.git
-        GIT_TAG        3.1.4
-    )
-    FetchContent_MakeAvailable(Olm)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_DIR})
-    SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${OUTPUT_DIR})
-    SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${OUTPUT_DIR})
-endif()
-
-target_link_libraries(libmatrix-client Olm::Olm)
-target_link_libraries(libmatrix-client-static Olm::Olm)
-target_link_libraries(driver Olm::Olm)
 
 if(USE_CONAN)
     include(${CMAKE_CURRENT_SOURCE_DIR}/conanbuildinfo.cmake)

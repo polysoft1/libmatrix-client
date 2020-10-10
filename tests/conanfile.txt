@@ -1,0 +1,9 @@
+[requires]
+cpprestsdk/2.10.14@bincrafters/stable
+nlohmann_json/3.7.3
+
+[options]
+libzip:with_openssl=False
+
+[generators]
+cmake
