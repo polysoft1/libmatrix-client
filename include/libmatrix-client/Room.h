@@ -13,12 +13,13 @@ namespace LibMatrix {
 class Room {
 public:
 	Room(std::string_view id, std::string name,
-		const std::vector<Message> &messages, std::string prevToken = "",
+		const std::vector<Message> &messages, bool encrypted=false, std::string prevToken = "",
 		std::string nextToken = "") :
-			id(id), name(name), messages(messages), prevToken(prevToken), nextToken(nextToken) {}
+			id(id), name(name), messages(messages), prevToken(prevToken), nextToken(nextToken), encrypted(encrypted) {}
 	std::string id;
 	std::string name;
 	std::vector<Message> messages;
+	bool encrypted;
 
 	std::string prevToken;
 	std::string nextToken;

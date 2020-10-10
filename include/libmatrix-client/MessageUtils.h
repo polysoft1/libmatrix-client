@@ -10,5 +10,7 @@
 
 void parseMessages(std::vector<LibMatrix::Message> &messages, const nlohmann::json &body);
 std::string findRoomName(const nlohmann::json &body);
+bool isRoomEncrypted(const nlohmann::json &msg_body);
+
 
 #endif

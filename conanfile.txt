@@ -1,5 +1,5 @@
 [requires]
-cpprestsdk/2.10.14@bincrafters/stable
+cpprestsdk/2.10.16
 nlohmann_json/3.7.3
 fmt/7.0.1
 

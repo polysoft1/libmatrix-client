@@ -7,6 +7,10 @@ using LibMatrix::Message;
 using LibMatrix::MessageStatus;
 using json = nlohmann::json;
 
+bool isRoomEncrypted(const json &msg_body) {
+	return msg_body[0]["type"].get<std::string>().compare("m.room.encrypted") == 0;
+}
+
 std::string findRoomName(const json &body) {
 	std::time_t latestTs = 0;
 	std::string output = "";

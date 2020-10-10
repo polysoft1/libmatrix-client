@@ -166,8 +166,9 @@ std::future<RoomMap> MatrixSession::syncState(nlohmann::json filter, int timeout
 					std::vector<Message> messages;
 
 					std::string name = findRoomName(rooms[roomId]["state"]["events"]);
+					bool encrypted = isRoomEncrypted(rooms[roomId]["timeline"]["events"]);
 					parseMessages(messages, rooms[roomId]["timeline"]["events"]);
-					std::shared_ptr<Room> room = std::make_shared<Room>(roomId, name, messages,
+					std::shared_ptr<Room> room = std::make_shared<Room>(roomId, name, messages, encrypted,
 						rooms[roomId]["timeline"]["prev_batch"].get<std::string>(),
 						"");
 					output[roomId] = room;
