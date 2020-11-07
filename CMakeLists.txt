@@ -26,20 +26,6 @@ set(source_files src/CPPRESTSDKClient.cpp src/CustomHTTPClient.cpp src/HTTP.cpp
 add_library(libmatrix-client SHARED ${source_files})
 add_library(libmatrix-client-static STATIC ${source_files})
 
-if(BUILD_DRIVERS)
-	add_executable(driver-static test.cpp)
-	add_executable(driver-shared test.cpp)
-
-	set_target_properties(driver-static PROPERTIES LINKER_LANGUAGE CXX)
-	set_target_properties(driver-static PROPERTIES CXX_STANDARD 17)
-	target_include_directories(driver-static PUBLIC "include/libmatrix-client")
-	set_target_properties(driver-shared PROPERTIES LINKER_LANGUAGE CXX)
-	set_target_properties(driver-shared PROPERTIES CXX_STANDARD 17)
-	target_include_directories(driver-shared PUBLIC "include/libmatrix-client")
-
-	target_link_libraries(driver-static libmatrix-client-static)
-	target_link_libraries(driver-shared libmatrix-client)
-endif()
 
 set_target_properties(libmatrix-client PROPERTIES LINKER_LANGUAGE CXX)
 set_target_properties(libmatrix-client PROPERTIES CXX_STANDARD 17)
@@ -90,9 +76,26 @@ else()
     SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${OUTPUT_DIR})
 endif()
 
+if(BUILD_DRIVERS)
+	add_executable(driver-static test.cpp)
+	add_executable(driver-shared test.cpp)
+
+	set_target_properties(driver-static PROPERTIES LINKER_LANGUAGE CXX)
+	set_target_properties(driver-static PROPERTIES CXX_STANDARD 17)
+	target_include_directories(driver-static PUBLIC "include/libmatrix-client")
+	set_target_properties(driver-shared PROPERTIES LINKER_LANGUAGE CXX)
+	set_target_properties(driver-shared PROPERTIES CXX_STANDARD 17)
+	target_include_directories(driver-shared PUBLIC "include/libmatrix-client")
+
+	target_link_libraries(driver-static libmatrix-client-static)
+	target_link_libraries(driver-shared libmatrix-client)
+
+	target_link_libraries(driver-shared Olm::Olm)
+	target_link_libraries(driver-static Olm::Olm)
+endif()
+
 target_link_libraries(libmatrix-client Olm::Olm)
 target_link_libraries(libmatrix-client-static Olm::Olm)
-target_link_libraries(driver Olm::Olm)
 
 if(USE_CONAN)
     include(${CMAKE_CURRENT_SOURCE_DIR}/conanbuildinfo.cmake)
