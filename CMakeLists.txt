@@ -63,6 +63,10 @@ IF (WIN32)
     ADD_DEFINITIONS("-DPolyChat_EXPORT")
 ENDIF (WIN32)
 
+# Make FMT build header-only to make dependencies easier
+target_compile_definitions(libmatrix-client PUBLIC FMT_HEADER_ONLY)
+target_compile_definitions(libmatrix-client-static PUBLIC FMT_HEADER_ONLY)
+
 if(USE_CONAN)
     include(${CMAKE_CURRENT_SOURCE_DIR}/conanbuildinfo.cmake)
     conan_basic_setup(TARGETS)
@@ -98,11 +102,11 @@ else()
     endif()
 
     find_package(fmt CONFIG REQUIRED)
-    target_link_libraries(libmatrix-client PRIVATE fmt::fmt fmt::fmt-header-only)
-    target_link_libraries(libmatrix-client-static PRIVATE fmt::fmt fmt::fmt-header-only)
+    target_link_libraries(libmatrix-client PRIVATE fmt::fmt)
+    target_link_libraries(libmatrix-client-static PRIVATE fmt::fmt)
     if(BUILD_DRIVERS)
-        target_link_libraries(driver-static PRIVATE fmt::fmt fmt::fmt-header-only)
-        target_link_libraries(driver-shared PRIVATE fmt::fmt fmt::fmt-header-only)
+        target_link_libraries(driver-static PRIVATE fmt::fmt)
+        target_link_libraries(driver-shared PRIVATE fmt::fmt)
     endif()
 endif()
 
