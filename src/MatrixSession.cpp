@@ -25,11 +25,10 @@ void MatrixSession::setHTTPCaller() {
 	http = std::make_unique<HTTPClient>(homeserverURL);
 }
 
-MatrixSession::MatrixSession() : homeserverURL(""), syncToken("") {
-	setHTTPCaller();
-}
+MatrixSession::MatrixSession() : MatrixSession("") {}
 
-MatrixSession::MatrixSession(std::string url) : homeserverURL(url), syncToken("") {
+MatrixSession::MatrixSession(std::string url)
+		: homeserverURL(url), syncToken(""), userID("unknown") {
 	setHTTPCaller();
 }
 
@@ -64,6 +63,7 @@ std::future<void> MatrixSession::login(std::string uname, std::string password) 
 		case HTTPStatus::HTTP_OK:
 			accessToken = body["access_token"].get<std::string>();
 			deviceID = body["device_id"].get<std::string>();
+			userID = body["user_id"].get<std::string>();
 			threadResult->set_value();
 			break;
 		default:
@@ -261,4 +261,8 @@ std::future<std::vector<User>> MatrixSession::getRoomMembers(std::string roomID)
 	}
 
 	return threadedResult->get_future();
+}
+
+std::string MatrixSession::getUserID() {
+	return userID;
 }

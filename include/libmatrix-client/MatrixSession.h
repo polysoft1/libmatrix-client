@@ -49,6 +49,7 @@ private:
 	std::unique_ptr<HTTPClient> http;
 	std::string homeserverURL;
 	std::string accessToken;
+	std::string userID;
 	std::string deviceID;
 	std::string syncToken;
 
@@ -71,6 +72,8 @@ public:
 
 	std::future<void> LIBMATRIX_DLL_EXPORT updateReadReceipt(std::string roomID, LibMatrix::Message message);
 	std::future<std::vector<User>> LIBMATRIX_DLL_EXPORT getRoomMembers(std::string roomID);
+
+	std::string getUserID();
 };// End MatrixSession Class
 
 }  // namespace LibMatrix
