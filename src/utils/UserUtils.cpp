@@ -1,5 +1,5 @@
 #include <nlohmann/json.hpp>
-#include <fmt/core.h> // Ignore CPPLintBear
+#include <fmt/format.h> // Ignore CPPLintBear
 
 #include "MatrixSession.h"
 #include "Users.h"
