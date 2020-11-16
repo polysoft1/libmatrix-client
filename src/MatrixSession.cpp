@@ -25,9 +25,7 @@ void MatrixSession::setHTTPCaller() {
 	http = std::make_unique<HTTPClient>(homeserverURL);
 }
 
-MatrixSession::MatrixSession() : MatrixSession("") {
-	setHTTPCaller();
-}
+MatrixSession::MatrixSession() : MatrixSession("") {}
 
 MatrixSession::MatrixSession(std::string url)
 		: homeserverURL(url), syncToken(""), userID("unknown") {
