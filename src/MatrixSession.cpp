@@ -30,8 +30,7 @@ MatrixSession::MatrixSession() : MatrixSession("") {
 }
 
 MatrixSession::MatrixSession(std::string url)
-	: homeserverURL(url), syncToken(""), userID("unknown")
-{
+		: homeserverURL(url), syncToken(""), userID("unknown") {
 	setHTTPCaller();
 }
 
