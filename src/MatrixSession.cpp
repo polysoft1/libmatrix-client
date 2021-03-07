@@ -16,6 +16,7 @@
 #include "Messages.h"
 #include "MessageUtils.h"
 #include "UserUtils.h"
+#include "Exceptions.h"
 
 using namespace LibMatrix; // Ignore CPPLintBear
 
@@ -31,6 +32,34 @@ MatrixSession::MatrixSession() : homeserverURL(""), syncToken("") {
 
 MatrixSession::MatrixSession(std::string url) : homeserverURL(url), syncToken("") {
 	setHTTPCaller();
+}
+
+MatrixSession::~MatrixSession(){
+	clearEncryptAccount();
+}
+
+void MatrixSession::clearEncryptAccount(){
+	olm_clear_account(encryptAccount);
+	delete encryptAccountBuff;
+
+	encryptAccountBuff = nullptr;
+	encryptAccount = nullptr;
+}
+
+void MatrixSession::postLoginSetup() {
+	encryptAccountBuff = new int8_t[olm_account_size()];
+	encryptAccount = olm_account(encryptAccountBuff);
+	
+	std::size_t random_size = olm_create_account_random_length(encryptAccount);
+	int8_t *random = new int8_t[random_size];
+	size_t retVal = olm_create_account(encryptAccount, random, random_size);
+	delete random;
+
+	if (retVal == olm_error()) {
+		std::string err = olm_account_last_error(encryptAccount);
+		clearEncryptAccount();
+		throw Exceptions::OLMException(err, Exceptions::ACC_CREATE);
+	}
 }
 
 std::future<void> MatrixSession::login(std::string uname, std::string password) {
@@ -64,6 +93,11 @@ std::future<void> MatrixSession::login(std::string uname, std::string password) 
 		case HTTPStatus::HTTP_OK:
 			accessToken = body["access_token"].get<std::string>();
 			deviceID = body["device_id"].get<std::string>();
+			try {
+				this->postLoginSetup();
+			}catch (Exceptions::OLMException e) {
+				threadResult->set_exception(std::make_exception_ptr(e));
+			}
 			threadResult->set_value();
 			break;
 		default:
@@ -167,7 +201,11 @@ std::future<RoomMap> MatrixSession::syncState(nlohmann::json filter, int timeout
 
 					std::string name = findRoomName(rooms[roomId]["state"]["events"]);
 					bool encrypted = isRoomEncrypted(rooms[roomId]["timeline"]["events"]);
-					parseMessages(messages, rooms[roomId]["timeline"]["events"]);
+					if(!encrypted) {
+						parseUnencryptedMessages(messages, rooms[roomId]["timeline"]["events"]);
+					} else {
+
+					}
 					std::shared_ptr<Room> room = std::make_shared<Room>(roomId, name, messages, encrypted,
 						rooms[roomId]["timeline"]["prev_batch"].get<std::string>(),
 						"");

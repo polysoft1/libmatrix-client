@@ -20,6 +20,9 @@ public:
 	std::string name;
 	std::vector<Message> messages;
 	bool encrypted;
+#if 0
+	std::unordered_map<std::string, std::vector</*something*/>>;
+#endif
 
 	std::string prevToken;
 	std::string nextToken;

@@ -28,7 +28,7 @@ std::string findRoomName(const json &body) {
 	return output;
 }
 
-void parseMessages(std::vector<Message> &messages, const json &body) {
+void parseUnencryptedMessages(std::vector<Message> &messages, const json &body) {
 	for(auto i = body.begin(); i != body.end(); ++i) {
 			std::string id = (*i)["event_id"].get<std::string>();
 			std::string sender = (*i)["sender"].get<std::string>();

@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <nlohmann/json.hpp>
+#include "olm/olm.h"
 
 #include "HTTPClient.h"
 #include "Messages.h"
@@ -52,9 +53,14 @@ private:
 	std::string deviceID;
 	std::string syncToken;
 
+	OlmAccount *encryptAccount;
+	int8_t *encryptAccountBuff;
+
 	int nextTransactionID = 999999;
 
 	void setHTTPCaller();
+	void postLoginSetup();
+	void clearEncryptAccount();
 
 	static constexpr std::string_view USER_TYPE = "m.id.user";
 	static constexpr std::string_view LOGIN_TYPE = "m.login.password";
@@ -62,6 +68,7 @@ private:
 public:
 	MatrixSession();
 	explicit MatrixSession(std::string url);
+	~MatrixSession();
 
 	std::future<RoomMap> LIBMATRIX_DLL_EXPORT syncState(nlohmann::json filter = {}, int timeout = 30000);
 

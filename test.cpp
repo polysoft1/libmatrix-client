@@ -4,17 +4,23 @@
 #include "include/libmatrix-client/MatrixSession.h"
 #include "include/libmatrix-client/Messages.h"
 #include "MessageUtils.h"
+#include "Exceptions.h"
 
-using LibMatrix::MatrixSession;
+using namespace LibMatrix;
 
 int main(int argc, const char **argv) {
 	MatrixSession client{argv[1]};
 	try {
 		auto future = client.login(argv[2], argv[3]);
-		if(future.valid()) {
-			std::cout << "Moving along!" << std::endl;
+		
+		try {
 			future.get();
-		}
+		} catch(Exceptions::OLMException e){
+			switch(e.type()) {
+				case Exceptions::ACC_CREATE:
+					std::cerr << "Error: Could not create encryption session.  Reason: " << e.what() << std::endl;
+			}
+		} 
 	}catch(std::runtime_error e) {
 		std::cout << "Could not login :(" << std::endl;
 		std::cout << e.what() << std::endl;
