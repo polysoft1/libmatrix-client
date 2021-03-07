@@ -22,7 +22,8 @@ using namespace LibMatrix; // Ignore CPPLintBear
 
 using json = nlohmann::json;
 
-const std::vector<std::string> LibMatrix::MatrixSession::encryptAlgos({"m.olm.v1.curve25519-aes-sha2", "m.megolm.v1.aes-sha2"});
+const std::vector<std::string> LibMatrix::MatrixSession::encryptAlgos({"m.olm.v1.curve25519-aes-sha2", 
+	"m.megolm.v1.aes-sha2"});
 
 void MatrixSession::setHTTPCaller() {
 	http = std::make_unique<HTTPClient>(homeserverURL);
@@ -36,7 +37,7 @@ MatrixSession::MatrixSession(std::string url) : homeserverURL(url), syncToken(""
 	setHTTPCaller();
 }
 
-MatrixSession::~MatrixSession(){
+MatrixSession::~MatrixSession() {
 	clearEncryptAccount();
 }
 
@@ -45,7 +46,7 @@ void MatrixSession::postLoginSetup() {
 	try{
 		setupEncryptAccount();
 		genIdKeys();
-	}catch(Exceptions::OLMException e){
+	}catch(Exceptions::OLMException e) {
 		clearEncryptAccount();
 		throw e;		
 	}
@@ -60,15 +61,15 @@ void MatrixSession::postLoginSetup() {
 
 	try{
 		sig = signMessage(request.dump());
-	}catch(Exceptions::OLMException e){
+	}catch(Exceptions::OLMException e) {
 		clearEncryptAccount();
 		throw e;
 	}
 
 	request["device_keys"]["signatures"] = {
 		{userId, {
-			{"ed25518:" + deviceID, sig}
-		}}
+			{"ed25518:" + deviceID, sig}}
+		}
 	};
 	
 	auto thing = std::make_shared<std::promise<void>>();
@@ -81,11 +82,11 @@ void MatrixSession::postLoginSetup() {
 	headers["Authorization"] = "Bearer " + accessToken;
 
 	data->setHeaders(std::make_shared<Headers>(headers));
-	
+
 	data->setResponseCallback([this, thing](Response result) {
 		json body = json::parse(result.data);
 
-		switch(result.status){
+		switch(result.status) {
 			case HTTPStatus::HTTP_OK:
 				std::cout << body.dump(4) << std::endl;
 				thing->set_value();
@@ -100,7 +101,7 @@ void MatrixSession::postLoginSetup() {
 		}
 	});
 
-	data->setErrorCallback([thing](std::string reason){
+	data->setErrorCallback([thing](std::string reason) {
 		thing->set_exception(
 			std::make_exception_ptr(std::runtime_error(reason))
 		);
