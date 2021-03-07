@@ -22,7 +22,7 @@ option(OLM_TESTS "Generate tests for OLM (fetching from source only)" off)
 option(BUILD_DRIVERS "Build drivers for testing code" off)
 
 set(source_files src/CPPRESTSDKClient.cpp src/CustomHTTPClient.cpp src/HTTP.cpp
-    src/MatrixSession.cpp src/utils/MessageUtils.cpp src/utils/UserUtils.cpp)
+	src/MatrixSession.cpp src/utils/MessageUtils.cpp src/utils/UserUtils.cpp src/MatrixSessionEncryption)
 add_library(libmatrix-client SHARED ${source_files})
 add_library(libmatrix-client-static STATIC ${source_files})
 

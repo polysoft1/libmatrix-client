@@ -22,6 +22,8 @@ using namespace LibMatrix; // Ignore CPPLintBear
 
 using json = nlohmann::json;
 
+const std::vector<std::string> LibMatrix::MatrixSession::encryptAlgos({"m.olm.v1.curve25519-aes-sha2", "m.megolm.v1.aes-sha2"});
+
 void MatrixSession::setHTTPCaller() {
 	http = std::make_unique<HTTPClient>(homeserverURL);
 }
@@ -38,28 +40,73 @@ MatrixSession::~MatrixSession(){
 	clearEncryptAccount();
 }
 
-void MatrixSession::clearEncryptAccount(){
-	olm_clear_account(encryptAccount);
-	delete encryptAccountBuff;
-
-	encryptAccountBuff = nullptr;
-	encryptAccount = nullptr;
-}
-
 void MatrixSession::postLoginSetup() {
-	encryptAccountBuff = new int8_t[olm_account_size()];
-	encryptAccount = olm_account(encryptAccountBuff);
-	
-	std::size_t random_size = olm_create_account_random_length(encryptAccount);
-	int8_t *random = new int8_t[random_size];
-	size_t retVal = olm_create_account(encryptAccount, random, random_size);
-	delete random;
-
-	if (retVal == olm_error()) {
-		std::string err = olm_account_last_error(encryptAccount);
+	std::string sig;
+	try{
+		setupEncryptAccount();
+		genIdKeys();
+	}catch(Exceptions::OLMException e){
 		clearEncryptAccount();
-		throw Exceptions::OLMException(err, Exceptions::ACC_CREATE);
+		throw e;		
 	}
+	json request = {
+		{"device_keys", {
+			{"algorithms", MatrixSession::encryptAlgos},
+			{"device_id", deviceID},
+			{"keys", json::parse(idKeys)},
+			{"user_id", userId},
+		}}
+	};
+
+	try{
+		sig = signMessage(request.dump());
+	}catch(Exceptions::OLMException e){
+		clearEncryptAccount();
+		throw e;
+	}
+
+	request["device_keys"]["signatures"] = {
+		{userId, {
+			{"ed25518:" + deviceID, sig}
+		}}
+	};
+	
+	auto thing = std::make_shared<std::promise<void>>();
+	auto data = std::make_shared<HTTPRequestData>(HTTPMethod::POST, MatrixURLs::E2E_UPLOAD_KEYS);
+	data->setBody(request.dump());
+	Headers headers;
+
+	headers["Content-Type"] = "application/json";
+	headers["Accept"] = "application/json";
+	headers["Authorization"] = "Bearer " + accessToken;
+
+	data->setHeaders(std::make_shared<Headers>(headers));
+	
+	data->setResponseCallback([this, thing](Response result) {
+		json body = json::parse(result.data);
+
+		switch(result.status){
+			case HTTPStatus::HTTP_OK:
+				std::cout << body.dump(4) << std::endl;
+				thing->set_value();
+				break;
+			default:
+				std::cerr << "Status: " << static_cast<int>(result.status) << std::endl;
+				std::cerr << "Body: " << body.dump(4) << std::endl;
+				thing->set_exception(
+					std::make_exception_ptr(std::runtime_error("got invalid status code"))
+				);
+				break;
+		}
+	});
+
+	data->setErrorCallback([thing](std::string reason){
+		thing->set_exception(
+			std::make_exception_ptr(std::runtime_error(reason))
+		);
+	});
+	http->request(data);
+	thing.get();
 }
 
 std::future<void> MatrixSession::login(std::string uname, std::string password) {
@@ -93,6 +140,8 @@ std::future<void> MatrixSession::login(std::string uname, std::string password) 
 		case HTTPStatus::HTTP_OK:
 			accessToken = body["access_token"].get<std::string>();
 			deviceID = body["device_id"].get<std::string>();
+			userId = body["user_id"].get<std::string>();
+
 			try {
 				this->postLoginSetup();
 			}catch (Exceptions::OLMException e) {

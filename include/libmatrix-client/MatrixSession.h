@@ -7,6 +7,7 @@
 #include <future>
 #include <unordered_map>
 #include <vector>
+#include <array>
 
 #include <nlohmann/json.hpp>
 #include "olm/olm.h"
@@ -41,6 +42,8 @@ namespace MatrixURLs {
 	const std::string READ_MARKER_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/read_markers";
 	const std::string GET_ROOM_MEMBERS_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/joined_members";
 
+	const std::string E2E_UPLOAD_KEYS = CLIENT_PREFIX + "/keys/upload";
+
 	const std::string THUMBNAIL_URL_FORMAT = MEDIA_PREFIX + "/thumbnail/{:s}/{:s}";
 
 }  // namespace MatrixURLs
@@ -52,19 +55,26 @@ private:
 	std::string accessToken;
 	std::string deviceID;
 	std::string syncToken;
+	std::string userId;
 
 	OlmAccount *encryptAccount;
-	int8_t *encryptAccountBuff;
+	uint8_t *encryptAccountBuff;
+	std::string idKeys;
 
 	int nextTransactionID = 999999;
 
 	void setHTTPCaller();
 	void postLoginSetup();
+
+	void setupEncryptAccount();
+	void genIdKeys();
 	void clearEncryptAccount();
+	std::string signMessage(std::string message);
 
 	static constexpr std::string_view USER_TYPE = "m.id.user";
 	static constexpr std::string_view LOGIN_TYPE = "m.login.password";
 
+	static const std::vector<std::string> encryptAlgos;
 public:
 	MatrixSession();
 	explicit MatrixSession(std::string url);
