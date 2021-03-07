@@ -15,6 +15,7 @@ jobs:
                 cd tests
                 pip3 install conan
                 conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+                conan profile update settings.compiler.libcxx=libstdc++11 default
                 conan install . -s build_type=Debug
           - name: Build the file
             run: |
