@@ -25,6 +25,7 @@ int main(int argc, const char **argv) {
 	auto rooms = client.syncState().get();
 	for(auto i = rooms.begin(); i != rooms.end(); ++i) {
 		std::cout << i->first << "\n";
+		std::cout << (i->second.get()->encrypted ? "Encrypted session" : "Unencrypted session") << std::endl;
 		//Print users
 		auto users = client.getRoomMembers(i->first).get();
 		for(LibMatrix::User i : users) {

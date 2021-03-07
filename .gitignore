@@ -9,3 +9,4 @@ conan*
 graph_info.json
 !conanfile.txt
 /CMakeSettings.json
+makefile
