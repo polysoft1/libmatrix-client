@@ -34,10 +34,15 @@ int main(int argc, const char **argv) {
 		std::cout << (i->second.get()->encrypted ? "Encrypted session" : "Unencrypted session") << std::endl;
 		//Print users
 		auto users = client.getRoomMembers(i->first).get();
-		for(LibMatrix::User i : users) {
+		for(auto it = users.begin(); it != users.end(); ++it) {
+			User i = it->second;
 			std::cout << "\t" << i.id << std::endl;
 			std::cout << "\t\t" << i.displayName << std::endl;
 			std::cout << "\t\t" << i.avatarURL << std::endl;
+			std::cout << "\t\tDevices: " << std::endl;
+			for(auto deviceIt = i.devices.begin(); deviceIt != i.devices.end(); ++deviceIt){
+					std::cout << "\t\t\t" << deviceIt->second.get()->id << std::endl;
+			}
 		}
 		std::cout << "\t" << i->second->name << "\n";
 		std::cout << "\t\tencrypted: " << (i->second->encrypted ? "true" : "false") << "\n";

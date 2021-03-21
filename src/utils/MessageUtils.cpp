@@ -8,6 +8,7 @@ using LibMatrix::MessageStatus;
 using json = nlohmann::json;
 
 bool isRoomEncrypted(const json &msg_body) {
+	//TODO (kdvalin): Go through the message list looking for this event instead of just the 1st event
 	return msg_body[0]["type"].get<std::string>().compare("m.room.encrypted") == 0;
 }
 

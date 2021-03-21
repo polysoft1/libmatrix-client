@@ -35,6 +35,7 @@ namespace MatrixURLs {
 	const std::string LOGIN = CLIENT_PREFIX + "/login";
 	const std::string GET_ROOMS = CLIENT_PREFIX + "/joined_rooms";
 	const std::string SYNC = CLIENT_PREFIX + "/sync";
+	const std::string DEVICE_KEY_QUERY = CLIENT_PREFIX + "/keys/query";
 
 	const std::string SEND_MESSAGE_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/send/m.room.message/{:s}";
 	const std::string GET_ROOM_MESSAGE_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/messages";
@@ -70,6 +71,7 @@ private:
 	void genIdKeys();
 	void clearEncryptAccount();
 	std::string signMessage(std::string message);
+	std::future<void> getUserDevices(std::unordered_map<std::string, User> users, int timeout = 10000);
 
 	static constexpr std::string_view USER_TYPE = "m.id.user";
 	static constexpr std::string_view LOGIN_TYPE = "m.login.password";
@@ -87,7 +89,7 @@ public:
 	std::future<void> LIBMATRIX_DLL_EXPORT sendMessage(std::string roomID, std::string message);
 
 	std::future<void> LIBMATRIX_DLL_EXPORT updateReadReceipt(std::string roomID, LibMatrix::Message message);
-	std::future<std::vector<User>> LIBMATRIX_DLL_EXPORT getRoomMembers(std::string roomID);
+	std::future<std::unordered_map<std::string, User>> LIBMATRIX_DLL_EXPORT getRoomMembers(std::string roomID);
 };// End MatrixSession Class
 
 }  // namespace LibMatrix

@@ -310,8 +310,8 @@ std::future<void> MatrixSession::updateReadReceipt(std::string roomID, LibMatrix
 	return threadedResult->get_future();
 }
 
-std::future<std::vector<User>> MatrixSession::getRoomMembers(std::string roomID) {
-	auto threadedResult = std::make_shared<std::promise<std::vector<User>>>();
+std::future<std::unordered_map<std::string, User>> MatrixSession::getRoomMembers(std::string roomID) {
+	auto threadedResult = std::make_shared<std::promise<std::unordered_map<std::string, User>>>();
 
 	if (accessToken.empty()) {
 		threadedResult->set_exception(
@@ -337,11 +337,13 @@ std::future<std::vector<User>> MatrixSession::getRoomMembers(std::string roomID)
 					break;
 				case HTTPStatus::HTTP_OK:
 					json members = body["joined"];
-					std::vector<User> output;
+					std::unordered_map<std::string, User> output;
 
 					for(auto i = members.begin(); i != members.end(); ++i) {
-						output.push_back(parseUser(homeserverURL, i.key(), *i));
+						User member = parseUser(homeserverURL, i.key(), *i);
+						output[member.id] = member;
 					}
+					this->getUserDevices(output).get();
 					threadedResult->set_value(output);
 					break;
 			}
