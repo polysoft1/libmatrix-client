@@ -73,6 +73,10 @@ private:
 	std::string signMessage(std::string message);
 	std::future<void> getUserDevices(std::unordered_map<std::string, User> users, int timeout = 10000);
 
+	void httpCall(std::string url, HTTPMethod method, nlohmann::json data, ResponseCallback callback, ErrorCallback errCallback);
+	template <class T>
+	ErrorCallback createErrorCallback(std::shared_ptr<std::promise<T>> promiseThread);
+
 	static constexpr std::string_view USER_TYPE = "m.id.user";
 	static constexpr std::string_view LOGIN_TYPE = "m.login.password";
 

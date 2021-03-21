@@ -320,14 +320,8 @@ std::future<std::unordered_map<std::string, User>> MatrixSession::getRoomMembers
 		threadedResult->set_exception(
 			std::make_exception_ptr(std::runtime_error("Invalid room ID sent!")));
 	} else {
-		Headers reqHeaders;
-		reqHeaders["Authorization"] = "Bearer " + accessToken;
-
 		std::string url = fmt::format(MatrixURLs::GET_ROOM_MEMBERS_FORMAT, roomID);
-		auto data = std::make_shared<HTTPRequestData>(HTTPMethod::GET, url);
-		data->setHeaders(std::make_shared<Headers>(reqHeaders));
-
-		data->setResponseCallback([this, threadedResult](Response resp) {
+		httpCall(url, HTTPMethod::GET, {}, [this, threadedResult](Response resp) {
 			json body = json::parse(resp.data);
 			switch(resp.status) {
 				default:
@@ -347,9 +341,35 @@ std::future<std::unordered_map<std::string, User>> MatrixSession::getRoomMembers
 					threadedResult->set_value(output);
 					break;
 			}
-		});
-		http->request(data);
+		}, createErrorCallback<std::unordered_map<std::string, User>>(threadedResult));
 	}
 
 	return threadedResult->get_future();
+}
+
+template <class T>
+ErrorCallback MatrixSession::createErrorCallback(std::shared_ptr<std::promise<T>> promiseThread) {
+	return ([promiseThread](std::string reason) {
+		promiseThread->set_exception(
+			std::make_exception_ptr(
+				std::runtime_error(reason)
+			)
+		);
+	});
+}
+
+void MatrixSession::httpCall(std::string url, HTTPMethod method, json data, ResponseCallback callback, ErrorCallback errCallback) {
+	auto reqData = std::make_shared<HTTPRequestData>(method, url);
+	reqData->setBody(data.dump());
+	Headers headers;
+	headers["Content-Type"] = "application/json";
+	headers["Accept"] = "application/json";
+	headers["Authorization"] = "Bearer " + accessToken;
+
+	reqData->setHeaders(std::make_shared<Headers>(headers));
+
+	reqData->setResponseCallback(callback);
+
+	reqData->setErrorCallback(errCallback);
+	http->request(reqData);
 }
