@@ -95,6 +95,7 @@ void MatrixSession::postLoginSetup() {
 	}, createErrorCallback<void>(thing));
 
 	thing.get();
+	e2eAccount->generateOneTimeKeys();
 }
 
 std::future<void> MatrixSession::login(std::string uname, std::string password) {
