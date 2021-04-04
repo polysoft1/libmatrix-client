@@ -7,6 +7,7 @@
 #include "olm/olm.h"
 #include <vector>
 #include <queue>
+#include <nlohmann/json.hpp>
 
 namespace LibMatrix::Encryption {
 class Account {
@@ -23,7 +24,7 @@ public:
     void generateIdKeys();
     const std::vector<IdentityKey>& getIdKeys() const { return idKeys; }
 
-    json generateOneTimeKeys(int num = 5);
+    nlohmann::json generateOneTimeKeys(int num = 5);
     void publishOneTimeKeys() { olm_account_mark_keys_as_published(account); }
 
     std::string sign(std::string message);

@@ -61,19 +61,13 @@ void MatrixSession::postLoginSetup() {
 			{"user_id", userId},
 		}}
 	};
-	std::string sig;
+
 	try{
-		sig = e2eAccount->sign(request.dump());
+		signJSONPayload(request);
 	}catch(Exceptions::OLMException e) {
 		e2eAccount.reset(nullptr);
 		throw e;
 	}
-
-	request["device_keys"]["signatures"] = {
-		{userId, {
-			{"ed25518:" + deviceID, sig}}
-		}
-	};
 	
 	auto thing = std::make_shared<std::promise<void>>();
 	httpCall(MatrixURLs::E2E_UPLOAD_KEYS, HTTPMethod::POST, request, [this, thing](Response result) {
@@ -95,7 +89,7 @@ void MatrixSession::postLoginSetup() {
 	}, createErrorCallback<void>(thing));
 
 	thing.get();
-	e2eAccount->generateOneTimeKeys();
+	publishOneTimeKeys(e2eAccount->generateOneTimeKeys()).get();
 }
 
 std::future<void> MatrixSession::login(std::string uname, std::string password) {
@@ -384,4 +378,38 @@ std::future<void> MatrixSession::getUserDevices(std::unordered_map<std::string, 
 	});
 	http->request(data);
 	return thing->get_future();
+}
+
+std::future<void> MatrixSession::publishOneTimeKeys(json keys) {
+	auto promise = std::make_shared<std::promise<void>>();
+	signJSONPayload(keys);
+	httpCall(MatrixURLs::E2E_UPLOAD_KEYS, HTTPMethod::POST, keys, [this, promise](Response resp) {
+		switch(resp.status) {
+			case HTTPStatus::HTTP_OK:
+				e2eAccount->publishOneTimeKeys();
+				promise->set_value();
+				break;
+			default:
+				promise->set_exception(
+					std::make_exception_ptr(
+						std::runtime_error("Error posting one time keys")
+					)
+				);
+		}
+	}, createErrorCallback<void>(promise));
+
+	return promise->get_future();
+}
+
+void MatrixSession::signJSONPayload(json &payload) {
+	if(e2eAccount.get() == nullptr) {
+		return;
+	}
+
+	std::string signature = e2eAccount->sign(payload.dump());
+	payload["device_keys"]["signatures"] = {
+		{userId, {
+			{"ed25518:" + deviceID, signature}}
+		}
+	};
 }

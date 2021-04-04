@@ -66,10 +66,13 @@ private:
 	void postLoginSetup();
 
 	std::future<void> getUserDevices(std::unordered_map<std::string, User> users, int timeout = 10000);
+	std::future<void> publishOneTimeKeys(nlohmann::json keys);
 
 	void httpCall(std::string url, HTTPMethod method, nlohmann::json data, ResponseCallback callback, ErrorCallback errCallback);
 	template <class T>
 	ErrorCallback createErrorCallback(std::shared_ptr<std::promise<T>> promiseThread);
+
+	void signJSONPayload(nlohmann::json& payload);
 
 	static constexpr std::string_view USER_TYPE = "m.id.user";
 	static constexpr std::string_view LOGIN_TYPE = "m.login.password";
