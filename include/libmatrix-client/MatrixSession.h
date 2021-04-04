@@ -10,12 +10,12 @@
 #include <array>
 
 #include <nlohmann/json.hpp>
-#include "olm/olm.h"
 
 #include "HTTPClient.h"
 #include "Messages.h"
 #include "Room.h"
 #include "Users.h"
+#include "Encryption/Account.h"
 
 #include "DLL.h"
 
@@ -58,19 +58,13 @@ private:
 	std::string syncToken;
 	std::string userId;
 
-	OlmAccount *encryptAccount;
-	uint8_t *encryptAccountBuff;
-	std::string idKeys;
+	std::unique_ptr<Encryption::Account> e2eAccount;
 
 	int nextTransactionID = 999999;
 
 	void setHTTPCaller();
 	void postLoginSetup();
 
-	void setupEncryptAccount();
-	void genIdKeys();
-	void clearEncryptAccount();
-	std::string signMessage(std::string message);
 	std::future<void> getUserDevices(std::unordered_map<std::string, User> users, int timeout = 10000);
 
 	void httpCall(std::string url, HTTPMethod method, nlohmann::json data, ResponseCallback callback, ErrorCallback errCallback);
