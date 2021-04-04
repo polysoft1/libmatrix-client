@@ -23,7 +23,8 @@ public:
     void generateIdKeys();
     const std::vector<IdentityKey>& getIdKeys() const { return idKeys; }
 
-    void generateOneTimeKeys(int num = 5);
+    json generateOneTimeKeys(int num = 5);
+    void publishOneTimeKeys() { olm_account_mark_keys_as_published(account); }
 
     std::string sign(std::string message);
 };

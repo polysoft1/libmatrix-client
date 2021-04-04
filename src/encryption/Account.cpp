@@ -83,7 +83,7 @@ std::string Account::sign(std::string message) {
 	return sig;
 }
 
-void Account::generateOneTimeKeys(int num) {
+json Account::generateOneTimeKeys(int num) {
 	size_t keySize = olm_account_generate_one_time_keys_random_length(account, num);
 	uint8_t *buffer = new uint8_t[keySize];
 	
@@ -123,4 +123,6 @@ void Account::generateOneTimeKeys(int num) {
 
 	delete[] outBuffer;
 	outBuffer = nullptr;
+
+	return keys;
 }
