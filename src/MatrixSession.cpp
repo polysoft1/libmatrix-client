@@ -136,8 +136,8 @@ std::future<void> MatrixSession::login(std::string uname, std::string password) 
 	return threadResult->get_future();
 }
 
-std::future<const RoomMap> MatrixSession::syncState(nlohmann::json filter, int timeout) { //TODO change signature to reference
-	auto threadedResult = std::make_shared<std::promise<const RoomMap>>();
+std::future<const RoomMap&> MatrixSession::syncState(nlohmann::json filter, int timeout) { //TODO change signature to reference
+	auto threadedResult = std::make_shared<std::promise<const RoomMap&>>();
 
 	if(verifyAuth(threadedResult)) {
 		std::string urlParams = "?timeout={:d}";
@@ -186,7 +186,7 @@ std::future<const RoomMap> MatrixSession::syncState(nlohmann::json filter, int t
 				threadedResult->set_value(roomMap);
 				break;
 			}
-		}, createErrorCallback<const RoomMap>(threadedResult));
+		}, createErrorCallback<const RoomMap&>(threadedResult));
 	}
 
 	return threadedResult->get_future();

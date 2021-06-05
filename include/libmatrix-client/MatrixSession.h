@@ -87,7 +87,7 @@ public:
 	explicit MatrixSession(std::string url);
 	~MatrixSession();
 
-	std::future<const RoomMap> LIBMATRIX_DLL_EXPORT syncState(nlohmann::json filter = {}, int timeout = 30000);
+	std::future<const RoomMap&> LIBMATRIX_DLL_EXPORT syncState(nlohmann::json filter = {}, int timeout = 30000);
 
 	std::future<void> LIBMATRIX_DLL_EXPORT login(std::string uname, std::string password);
 
