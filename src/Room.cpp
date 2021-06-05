@@ -28,7 +28,7 @@ std::future<void> Room::sendMessage(std::string message) {
 	});
 }
 
-const std::string& Room::getEncryptionSessionId() const {
+const std::string Room::getEncryptionSessionId() const {
 	if(!encrypted || !encryptionSession) {
 		throw "Not an encrypted room";
 	}

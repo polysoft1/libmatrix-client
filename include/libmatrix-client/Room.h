@@ -36,7 +36,7 @@ public:
 	bool isEncrypted() const { return encrypted; } //TODO allow e2e room upgrading
 	const std::vector<Message>& getMessages() const { return messages; }
 
-	const std::string& getEncryptionSessionId() const;
+	const std::string getEncryptionSessionId() const;
 	
 	void appendMessages(std::vector<Message> msg); //Used on server sync
 	std::future<void> sendMessage(std::string msg); //Used by client to send message, needs fleshing out
