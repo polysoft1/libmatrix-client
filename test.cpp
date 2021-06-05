@@ -5,6 +5,7 @@
 #include "include/libmatrix-client/Messages.h"
 #include "MessageUtils.h"
 #include "Exceptions.h"
+#include "Room.h"
 
 using namespace LibMatrix;
 
@@ -31,7 +32,7 @@ int main(int argc, const char **argv) {
 	auto rooms = client.syncState().get();
 	for(auto i = rooms.begin(); i != rooms.end(); ++i) {
 		std::cout << i->first << "\n";
-		std::cout << (i->second.get()->encrypted ? "Encrypted session" : "Unencrypted session") << std::endl;
+		std::cout << (i->second.get()->isEncrypted() ? "Encrypted session" : "Unencrypted session") << std::endl;
 		//Print users
 		auto users = client.getRoomMembers(i->first).get();
 		for(auto it = users.begin(); it != users.end(); ++it) {
@@ -44,9 +45,9 @@ int main(int argc, const char **argv) {
 					std::cout << "\t\t\t" << deviceIt->second.get()->id << std::endl;
 			}
 		}
-		std::cout << "\t" << i->second->name << "\n";
-		std::cout << "\t\tencrypted: " << (i->second->encrypted ? "true" : "false") << "\n";
-		for(LibMatrix::Message msg : i->second->messages) {
+		std::cout << "\t" << i->second->getName() << "\n";
+		std::cout << "\t\tencrypted: " << (i->second->isEncrypted() ? "true" : "false") << "\n";
+		for(LibMatrix::Message msg : i->second->getMessages()) {
 			std::cout << "\t\t" << msg.id << "\n";
 			std::cout << "\t\t" << msg.content << "\n";
 			std::cout << "\t\t" << msg.sender << "\n";
@@ -54,18 +55,24 @@ int main(int argc, const char **argv) {
 	}
 
 	while(true) {
-		auto patch = client.syncState().get();
-		for(auto i = patch.begin(); i != patch.end(); ++i) {
-			std::cout << i->first << "\n";
+		try {
+			std::cout << "Starting request" << std::endl;
+			auto patch = client.syncState().get();
+			std::cout << "Got response" << std::endl;
+			for(auto i = patch.begin(); i != patch.end(); ++i) {
+				std::cout << i->first << "\n";
 
-			std::cout << "\t" << i->second->name << "\n";
-			for(LibMatrix::Message msg : i->second->messages) {
-				std::cout << "\t\t" << msg.id << "\n";
-				std::cout << "\t\t" << msg.content << "\n";
-				std::cout << "\t\t" << msg.sender << "\n";
-				client.updateReadReceipt(i->second->id, *(i->second->messages.rbegin()) ).get();
+				std::cout << "\t" << i->second->getName() << "\n";
+				for(LibMatrix::Message msg : i->second->getMessages()) {
+					std::cout << "\t\t" << msg.id << "\n";
+					std::cout << "\t\t" << msg.content << "\n";
+					std::cout << "\t\t" << msg.sender << "\n";
+				}
 			}
+		}catch(std::runtime_error e){
+			std::cerr << e.what() << std::endl;
 		}
+		std::cin.ignore();//Wait for a key press
 	}
 
 /*	LibMatrix::MessageBatchMap result = client.syncState().get();

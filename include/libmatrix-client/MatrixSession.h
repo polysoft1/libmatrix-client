@@ -13,14 +13,16 @@
 
 #include "HTTPClient.h"
 #include "Messages.h"
-#include "Room.h"
 #include "Users.h"
 #include "Encryption/Account.h"
+#include "Room.h"
+#include "typedefs.h"
 
 #include "DLL.h"
 
 
 namespace LibMatrix {
+class Room;
 
 namespace MatrixURLs {
 	/**	Format:
@@ -47,6 +49,8 @@ namespace MatrixURLs {
 
 	const std::string THUMBNAIL_URL_FORMAT = MEDIA_PREFIX + "/thumbnail/{:s}/{:s}";
 
+	const std::string TO_DEVICE_FORMAT = CLIENT_PREFIX + "/sendToDevice/{:s}/{:s}";
+
 }  // namespace MatrixURLs
 
 class MatrixSession {
@@ -57,6 +61,7 @@ private:
 	std::string deviceID;
 	std::string syncToken;
 	std::string userId;
+	bool req = false;
 
 	std::unique_ptr<Encryption::Account> e2eAccount;
 
@@ -67,10 +72,7 @@ private:
 
 	std::future<void> getUserDevices(std::unordered_map<std::string, User> users, int timeout = 10000);
 	std::future<void> publishOneTimeKeys(nlohmann::json keys);
-
-	void httpCall(std::string url, HTTPMethod method, nlohmann::json data, ResponseCallback callback, ErrorCallback errCallback);
-	template <class T>
-	ErrorCallback createErrorCallback(std::shared_ptr<std::promise<T>> promiseThread);
+	std::future<void> requestEncryptionKey(std::string roomId, std::string olmSessionId);
 
 	void signJSONPayload(nlohmann::json& payload);
 
@@ -78,12 +80,14 @@ private:
 	static constexpr std::string_view LOGIN_TYPE = "m.login.password";
 
 	static const std::vector<std::string> encryptAlgos;
+
+	RoomMap roomMap;
 public:
 	MatrixSession();
 	explicit MatrixSession(std::string url);
 	~MatrixSession();
 
-	std::future<RoomMap> LIBMATRIX_DLL_EXPORT syncState(nlohmann::json filter = {}, int timeout = 30000);
+	std::future<const RoomMap> LIBMATRIX_DLL_EXPORT syncState(nlohmann::json filter = {}, int timeout = 30000);
 
 	std::future<void> LIBMATRIX_DLL_EXPORT login(std::string uname, std::string password);
 
@@ -91,6 +95,20 @@ public:
 
 	std::future<void> LIBMATRIX_DLL_EXPORT updateReadReceipt(std::string roomID, LibMatrix::Message message);
 	std::future<std::unordered_map<std::string, User>> LIBMATRIX_DLL_EXPORT getRoomMembers(std::string roomID);
+
+	
+	void httpCall(std::string url, HTTPMethod method, const nlohmann::json &data, ResponseCallback callback, ErrorCallback errCallback);
+	template <class T>
+	ErrorCallback createErrorCallback(std::shared_ptr<std::promise<T>> promiseThread);
+
+	template<class T>
+	bool verifyAuth(std::shared_ptr<std::promise<T>> result);
+
+	std::future<void> sendMessageRequest(std::string roomId, const nlohmann::json &payload);
+
+	const std::string& getDeviceId() const { return deviceID; }
+	const std::string& getUserId() const { return userId; }
+	const std::string& getSenderKey() const { return e2eAccount->getIdKeys()[0].getValue(); }
 };// End MatrixSession Class
 
 }  // namespace LibMatrix

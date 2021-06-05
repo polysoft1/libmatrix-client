@@ -5,7 +5,7 @@
 #include <stdexcept>
 
 namespace LibMatrix::Exceptions {
-    enum OLMError {ACC_CREATE, ID_KEY_GEN, SIGNATURE, OTK_GENERATION};
+    enum OLMError {ACC_CREATE, ID_KEY_GEN, SIGNATURE, OTK_GENERATION, SESSION_CREATE, DECRYPT_MESSAGE};
     class OLMException : public std::runtime_error {
         private:
             OLMError err;
