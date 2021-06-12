@@ -16,7 +16,7 @@ MegOlmSession::MegOlmSession() : msgCounter(0), msgLimit(-1), endTime(-1) {
 	if(olm_init_outbound_group_session(outSession, buffer, randLen) == olm_error()) {
 		throwError(true);
 	}
-	delete[] buffer;
+	buffers.push_back(buffer);
 
 	size_t idLen = olm_outbound_group_session_id_length(outSession);
 	sessionId = new uint8_t[idLen];
@@ -53,12 +53,12 @@ void MegOlmSession::init() {
 	size_t randLen = olm_outbound_group_session_size();
 	uint8_t *buffer = new uint8_t[randLen];
 	outSession = olm_outbound_group_session(buffer);
-	delete[] buffer;
+	buffers.push_back(buffer);
 
 	randLen = olm_inbound_group_session_size();
 	buffer = new uint8_t[randLen];
 	inSession = olm_inbound_group_session(buffer);
-	delete[] buffer;
+	buffers.push_back(buffer);
 }
 
 void MegOlmSession::createInboundSession(uint8_t *_sessionKey, size_t sessionKeyLen) {
@@ -88,6 +88,10 @@ void MegOlmSession::clear() {
 		olm_clear_inbound_group_session(inSession);
 	}
 	
+	for(uint8_t *buffer : buffers) {
+		delete[] buffer;
+	}
+
 	outSession = nullptr;
 	inSession = nullptr;
 	delete[] sessionId;

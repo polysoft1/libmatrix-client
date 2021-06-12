@@ -3,6 +3,7 @@
 
 #include <ctime>
 #include <unordered_map>
+#include <vector>
 #include <olm/outbound_group_session.h>
 #include <olm/inbound_group_session.h>
 
@@ -16,6 +17,7 @@ private:
 	uint8_t *sessionId = nullptr;
 	uint8_t *sessionKey = nullptr;
 
+	std::vector<uint8_t *> buffers;
 	//Rotation Information
 	int msgLimit;
 	int msgCounter;
