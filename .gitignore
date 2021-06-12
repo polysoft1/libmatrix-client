@@ -6,6 +6,7 @@ build
 venv
 
 conan*
+extern_modules
 graph_info.json
 !conanfile.txt
 /CMakeSettings.json
