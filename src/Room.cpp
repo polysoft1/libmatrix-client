@@ -2,6 +2,7 @@
 
 #include <fmt/core.h>  // Ignore CPPLintBear
 #include <nlohmann/json.hpp>
+#include <iostream>
 
 #include "MatrixSession.h"
 #include "Encryption/EncryptionUtils.h"
