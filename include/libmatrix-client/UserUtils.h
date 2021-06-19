@@ -5,7 +5,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "Users.h"
+#include "User.h"
 
 LibMatrix::User parseUser(const std::string& homeserverUrl, const std::string& key, const nlohmann::json& user);
 

@@ -15,7 +15,6 @@
 #include "HTTPClient.h"
 #include "Messages.h"
 #include "MessageUtils.h"
-#include "UserUtils.h"
 #include "Exceptions.h"
 
 #include "Encryption/EncryptionUtils.h"
@@ -224,53 +223,6 @@ std::future<void> MatrixSession::updateReadReceipt(std::string roomID, LibMatrix
 	return threadedResult->get_future();
 }
 
-std::future<std::unordered_map<std::string, User>> MatrixSession::getRoomMembers(std::string roomID) {
-	auto threadedResult = std::make_shared<std::promise<std::unordered_map<std::string, User>>>();
-
-	if (verifyAuth(threadedResult)) {
-		if (roomID.empty()) {
-			threadedResult->set_exception(
-				std::make_exception_ptr(std::runtime_error("Invalid room ID sent!")));
-		} else {
-			std::string url = fmt::format(MatrixURLs::GET_ROOM_MEMBERS_FORMAT, roomID);
-			httpCall(url, HTTPMethod::GET, {}, [this, threadedResult](Response resp) {
-				json body = json::parse(resp.data);
-				switch(resp.status) {
-					default:
-						threadedResult->set_exception(
-							std::make_exception_ptr(std::runtime_error("Error fetching state")));
-						std::cerr << static_cast<int>(resp.status) << std::endl;
-						break;
-					case HTTPStatus::HTTP_OK:
-						json members = body["joined"];
-						std::unordered_map<std::string, User> output;
-
-						for(auto i = members.begin(); i != members.end(); ++i) {
-							User member = parseUser(homeserverURL, i.key(), *i);
-							output[member.id] = member;
-						}
-						this->getUserDevices(output).get();
-						threadedResult->set_value(output);
-						break;
-				}
-			}, createErrorCallback<std::unordered_map<std::string, User>>(threadedResult));
-		}
-	}
-
-	return threadedResult->get_future();
-}
-
-template <class T>
-ErrorCallback MatrixSession::createErrorCallback(std::shared_ptr<std::promise<T>> promiseThread) {
-	return ([promiseThread](std::string reason) {
-		std::cout << "Errored out, reason: " << reason << std::endl;
-		promiseThread->set_exception(
-			std::make_exception_ptr(
-				std::runtime_error(reason)
-			)
-		);
-	});
-}
 
 void MatrixSession::httpCall(std::string url, HTTPMethod method, const json &data, ResponseCallback callback, ErrorCallback errCallback) {
 	auto reqData = std::make_shared<HTTPRequestData>(method, url);
@@ -445,16 +397,4 @@ std::future<void> MatrixSession::sendMessageRequest(std::string roomId, const nl
 			}, createErrorCallback<void>(threadResult));
 	}
 	return threadResult->get_future();
-}
-
-template<class T>
-bool MatrixSession::verifyAuth(std::shared_ptr<std::promise<T>> result) {
-	bool isEmpty = accessToken.empty();
-	if(isEmpty) {
-		result->set_exception(
-			std::make_exception_ptr(
-				std::runtime_error("You need to login first!")));
-	}
-
-	return !isEmpty;
 }

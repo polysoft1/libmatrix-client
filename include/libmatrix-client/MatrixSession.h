@@ -13,7 +13,7 @@
 
 #include "HTTPClient.h"
 #include "Messages.h"
-#include "Users.h"
+#include "User.h"
 #include "Encryption/Account.h"
 #include "Room.h"
 #include "typedefs.h"
@@ -70,7 +70,6 @@ private:
 	void setHTTPCaller();
 	void postLoginSetup();
 
-	std::future<void> getUserDevices(std::unordered_map<std::string, User> users, int timeout = 10000);
 	std::future<void> publishOneTimeKeys(nlohmann::json keys);
 	std::future<void> requestEncryptionKey(std::string roomId, std::string olmSessionId);
 
@@ -94,21 +93,40 @@ public:
 	std::future<void> LIBMATRIX_DLL_EXPORT sendMessage(std::string roomID, std::string message);
 
 	std::future<void> LIBMATRIX_DLL_EXPORT updateReadReceipt(std::string roomID, LibMatrix::Message message);
-	std::future<std::unordered_map<std::string, User>> LIBMATRIX_DLL_EXPORT getRoomMembers(std::string roomID);
 
+	std::future<void> getUserDevices(std::unordered_map<std::string, User> users, int timeout = 10000);
 	
 	void httpCall(std::string url, HTTPMethod method, const nlohmann::json &data, ResponseCallback callback, ErrorCallback errCallback);
 	template <class T>
-	ErrorCallback createErrorCallback(std::shared_ptr<std::promise<T>> promiseThread);
+	ErrorCallback createErrorCallback(std::shared_ptr<std::promise<T>> promiseThread) {
+		return ([promiseThread](std::string reason) {
+			std::cout << "Errored out, reason: " << reason << std::endl;
+			promiseThread->set_exception(
+				std::make_exception_ptr(
+					std::runtime_error(reason)
+				)
+			);
+			});
+	}
 
 	template<class T>
-	bool verifyAuth(std::shared_ptr<std::promise<T>> result);
+	bool verifyAuth(std::shared_ptr<std::promise<T>> result) {
+		bool isEmpty = accessToken.empty();
+		if (isEmpty) {
+			result->set_exception(
+				std::make_exception_ptr(
+					std::runtime_error("You need to login first!")));
+		}
+
+		return !isEmpty;
+	}
 
 	std::future<void> sendMessageRequest(std::string roomId, const nlohmann::json &payload);
 
 	const std::string& getDeviceId() const { return deviceID; }
 	const std::string& getUserId() const { return userId; }
 	const std::string& getSenderKey() const { return e2eAccount->getIdKeys()[0].getValue(); }
+	const std::string& getHomeserverURL() const { return homeserverURL; }
 };// End MatrixSession Class
 
 }  // namespace LibMatrix

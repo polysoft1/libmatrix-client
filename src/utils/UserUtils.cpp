@@ -2,7 +2,7 @@
 #include <fmt/core.h> // Ignore CPPLintBear
 
 #include "MatrixSession.h"
-#include "Users.h"
+#include "User.h"
 
 using namespace LibMatrix; // Ignore CPPLintBear
 using json = nlohmann::json;

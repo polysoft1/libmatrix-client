@@ -5,6 +5,8 @@
 #include <iostream>
 
 #include "MatrixSession.h"
+#include "User.h"
+#include "UserUtils.h"
 #include "Encryption/EncryptionUtils.h"
 
 using namespace LibMatrix;
@@ -83,6 +85,44 @@ std::future<void> Room::requestRoomKeys() {
 
 	return threadResult->get_future();
 }
+
+
+std::future<std::unordered_map<std::string, User>> Room::requestRoomMembers() {
+	auto threadedResult = std::make_shared<std::promise<std::unordered_map<std::string, User>>>();
+
+	if (parentSession.verifyAuth(threadedResult)) {
+		if (id.empty()) {
+			threadedResult->set_exception(
+				std::make_exception_ptr(std::runtime_error("Invalid room ID sent!")));
+		} else {
+			std::string url = fmt::format(MatrixURLs::GET_ROOM_MEMBERS_FORMAT, id);
+			parentSession.httpCall(url, HTTPMethod::GET, {}, [this, threadedResult](Response resp) {
+				json body = json::parse(resp.data);
+				switch (resp.status) {
+				default:
+					threadedResult->set_exception(
+						std::make_exception_ptr(std::runtime_error("Error fetching state")));
+					std::cerr << static_cast<int>(resp.status) << std::endl;
+					break;
+				case HTTPStatus::HTTP_OK:
+					json members = body["joined"];
+					std::unordered_map<std::string, User> output;
+
+					for (auto i = members.begin(); i != members.end(); ++i) {
+						User member = parseUser(parentSession.getHomeserverURL(), i.key(), *i);
+						output[member.id] = member;
+					}
+					parentSession.getUserDevices(output).get();
+					threadedResult->set_value(output);
+					break;
+				}
+				}, parentSession.createErrorCallback<std::unordered_map<std::string, User>>(threadedResult));
+		}
+	}
+
+	return threadedResult->get_future();
+}
+
 
 void Room::appendMessages(std::vector<Message> newMsgs) {
 	messages.insert(messages.end(), newMsgs.begin(), newMsgs.end());

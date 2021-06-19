@@ -11,9 +11,13 @@
 #include "Messages.h"
 #include "Encryption/MegOlmSession.h"
 
+#include "DLL.h"
+
 namespace LibMatrix {
 
 class MatrixSession;
+class User;
+
 class Room {
 private:
 	std::string id;
@@ -36,13 +40,21 @@ public:
 	bool isEncrypted() const { return encrypted; } //TODO allow e2e room upgrading
 	const std::vector<Message>& getMessages() const { return messages; }
 
-	const std::string getEncryptionSessionId() const;
+	const std::string LIBMATRIX_DLL_EXPORT getEncryptionSessionId() const;
 	
-	void appendMessages(std::vector<Message> msg); //Used on server sync
-	std::future<void> sendMessage(std::string msg); //Used by client to send message, needs fleshing out
+	void LIBMATRIX_DLL_EXPORT appendMessages(std::vector<Message> msg); //Used on server sync
+	std::future<void> LIBMATRIX_DLL_EXPORT sendMessage(std::string msg); //Used by client to send message, needs fleshing out
 
-	std::future<void> requestRoomKeys();
-	void setRoomEncryptionKey(std::string key);
+	std::future<void> LIBMATRIX_DLL_EXPORT requestRoomKeys();
+	void LIBMATRIX_DLL_EXPORT setRoomEncryptionKey(std::string key);
+
+	std::future<std::unordered_map<std::string, User>> LIBMATRIX_DLL_EXPORT requestRoomMembers();
+
+	/**
+	 * Shares the room keys with all trusted clients in the room.
+	 * Needed when this client is the one starting a new MegOlm session.
+	 */
+	void LIBMATRIX_DLL_EXPORT shareRoomKeys();
 };
 
 } // namespace LibMatrix
