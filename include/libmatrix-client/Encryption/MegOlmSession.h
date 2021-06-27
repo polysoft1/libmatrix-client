@@ -14,8 +14,8 @@ class MegOlmSession {
 private:
 	OlmOutboundGroupSession *outSession;
 	OlmInboundGroupSession *inSession;
-	uint8_t *sessionId = nullptr;
-	uint8_t *sessionKey = nullptr;
+	std::string sessionId;
+	std::string sessionKey;
 
 	std::vector<uint8_t *> buffers;
 	//Rotation Information
@@ -26,7 +26,7 @@ private:
 	std::unordered_map<uint32_t, time_t> indexStore;
 
 	void throwError(bool outbound, Exceptions::OLMError type = Exceptions::OLMError::SESSION_CREATE);
-	void createInboundSession(uint8_t *_sessionKey, size_t sessionKeyLen);
+	void createInboundSession();
 public:
 	MegOlmSession();
 	MegOlmSession(std::string sessionId);
@@ -35,8 +35,8 @@ public:
 	void init();
 	void clear();
 
-	const std::string getSessionId() const { return reinterpret_cast<char *>(sessionId); }
-	const std::string getSessionKey() const { return reinterpret_cast<char *>(sessionKey); }
+	const std::string getSessionId() const { return sessionId; }
+	const std::string getSessionKey() const { return sessionKey; }
 
 	std::string decryptMessage(std::string cipher, std::string senderKey, std::time_t ts);
 };

@@ -226,7 +226,9 @@ std::future<void> MatrixSession::updateReadReceipt(std::string roomID, LibMatrix
 
 void MatrixSession::httpCall(std::string url, HTTPMethod method, const json &data, ResponseCallback callback, ErrorCallback errCallback) {
 	auto reqData = std::make_shared<HTTPRequestData>(method, url);
-	reqData->setBody(data.dump());
+	if (!data.empty()) {
+		reqData->setBody(data.dump());
+	}
 	Headers headers;
 	headers["Content-Type"] = "application/json";
 	headers["Accept"] = "application/json";
@@ -326,54 +328,6 @@ void MatrixSession::signJSONPayload(json &payload) {
 			{"ed25518:" + deviceID, signature}}
 		}
 	};
-}
-
-std::future<void> MatrixSession::requestEncryptionKey(std::string roomId, std::string olmSessionId) {
-	auto threadResult = std::make_shared<std::promise<void>>();
-
-	//TODO (kdvalin) more unique transaction IDs
-	uint8_t num;
-	seedArray(&num, 1);
-	std::string txnId = std::string("test") + std::to_string(num);
-
-	json req;
-	req["messages"] = {
-		{userId, {
-			{"*", {
-				{"action", "request"},
-				{"requesting_device_id", deviceID},
-				{"request_id", txnId},
-				{"body", {
-					{"roomId", roomId},
-					{"algorithm", "m.megolm.v1.aes-sha2"},
-					{"sender_key", e2eAccount->getIdKeys()[0].getValue()},
-					{"session_id", olmSessionId}
-				}}
-			}}
-		}}
-	};
-
-	std::cout << req.dump(4) << std::endl;
-	if(verifyAuth(threadResult)) {
-		httpCall(fmt::format(MatrixURLs::TO_DEVICE_FORMAT, "m.room_key_request", txnId), 
-		HTTPMethod::PUT, req,
-		[threadResult](Response resp) {
-			switch(resp.status) {
-			case HTTPStatus::HTTP_OK:
-				threadResult->set_value();
-				break;
-			default:
-				std::cerr << static_cast<int>(resp.status) << ": " << resp.data << std::endl;
-				threadResult->set_exception(
-					std::make_exception_ptr(
-						std::runtime_error("Invalid request sent")
-					)
-				);
-			}
-		}, createErrorCallback<void>(threadResult));
-	}
-
-	return threadResult->get_future();
 }
 
 std::future<void> MatrixSession::sendMessageRequest(std::string roomId, const nlohmann::json &payload) {

@@ -19,32 +19,28 @@ MegOlmSession::MegOlmSession() : msgCounter(0), msgLimit(-1), endTime(-1) {
 	buffers.push_back(buffer);
 
 	size_t idLen = olm_outbound_group_session_id_length(outSession);
-	sessionId = new uint8_t[idLen];
-	if(olm_outbound_group_session_id(outSession, sessionId, idLen) == olm_error()) {
+	sessionId = std::string(idLen, 0); // string of null chars
+	if(olm_outbound_group_session_id(outSession, reinterpret_cast<uint8_t*>(sessionId.data()), idLen) == olm_error()) {
 		throwError(true);
 	}
 
 	size_t keyLen = olm_outbound_group_session_key_length(outSession);
-	sessionKey = new uint8_t[keyLen];
-	if(olm_outbound_group_session_key(outSession, sessionKey, keyLen) == olm_error()) {
+	sessionKey = std::string(keyLen, 0); // string of null chars
+	if(olm_outbound_group_session_key(outSession, reinterpret_cast<uint8_t*>(sessionKey.data()), keyLen) == olm_error()) {
 		throwError(true);
 	}
-	createInboundSession(sessionKey, keyLen);
+	createInboundSession();
 }
 
-MegOlmSession::MegOlmSession(std::string _sessionKey) : msgCounter(0), msgLimit(-1), endTime(-1) {
+MegOlmSession::MegOlmSession(std::string sessionKey)
+	: msgCounter(0), msgLimit(-1), endTime(-1), sessionKey(sessionKey)
+{
 	init();
-	createInboundSession(reinterpret_cast<uint8_t *>(_sessionKey.data()), _sessionKey.size());
+	createInboundSession();
 
-	sessionKey = new uint8_t[_sessionKey.size() + 1];
-	for(int i = 0; i < _sessionKey.size(); ++i) {
-		sessionKey[i] = _sessionKey[i];
-	}
-	sessionKey[_sessionKey.size()] = 0;// Null terminate it
-
-	size_t idLen = olm_inbound_group_session_id_length(inSession);
-	sessionId = new uint8_t[idLen];
-	if(olm_inbound_group_session_id(inSession, sessionId, idLen) == olm_error()) {
+	if(olm_inbound_group_session_id(inSession,
+		reinterpret_cast<uint8_t*>(sessionId.data()), sessionId.length()) == olm_error())
+	{
 		throwError(false);
 	}
 }
@@ -61,8 +57,8 @@ void MegOlmSession::init() {
 	buffers.push_back(buffer);
 }
 
-void MegOlmSession::createInboundSession(uint8_t *_sessionKey, size_t sessionKeyLen) {
-	auto res = olm_init_inbound_group_session(inSession, _sessionKey, sessionKeyLen);
+void MegOlmSession::createInboundSession() {
+	auto res = olm_init_inbound_group_session(inSession, reinterpret_cast<uint8_t*>(sessionKey.data()), sessionKey.length());
 
 	if(res == olm_error()) {
 		throwError(false);
@@ -94,8 +90,8 @@ void MegOlmSession::clear() {
 
 	outSession = nullptr;
 	inSession = nullptr;
-	delete[] sessionId;
-	delete[] sessionKey;
+	sessionId = "";
+	sessionKey = "";
 }
 
 std::string MegOlmSession::decryptMessage(std::string cipher, std::string senderKey, time_t ts) {
@@ -114,7 +110,7 @@ std::string MegOlmSession::decryptMessage(std::string cipher, std::string sender
 		throw Exceptions::OLMException("Invalid message ID after decryption", Exceptions::OLMError::DECRYPT_MESSAGE);
 	}
 
-	std::string msg = reinterpret_cast<char *>(buffer);
+	std::string msg(reinterpret_cast<char *>(buffer), buffLen);
 	delete[] buffer;
 	return msg;
 }

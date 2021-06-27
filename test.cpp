@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "Users.h"
+#include "User.h"
 #include "include/libmatrix-client/MatrixSession.h"
 #include "include/libmatrix-client/Messages.h"
 #include "MessageUtils.h"
@@ -28,30 +28,40 @@ int main(int argc, const char **argv) {
 		return 1;
 	}
 	std::cout << "Logged in :)" << std::endl;
-
-	auto rooms = client.syncState().get();
-	for(auto i = rooms.begin(); i != rooms.end(); ++i) {
-		std::cout << i->first << "\n";
-		std::cout << (i->second.get()->isEncrypted() ? "Encrypted session" : "Unencrypted session") << std::endl;
-		//Print users
-		auto users = client.getRoomMembers(i->first).get();
-		for(auto it = users.begin(); it != users.end(); ++it) {
-			User i = it->second;
-			std::cout << "\t" << i.id << std::endl;
-			std::cout << "\t\t" << i.displayName << std::endl;
-			std::cout << "\t\t" << i.avatarURL << std::endl;
-			std::cout << "\t\tDevices: " << std::endl;
-			for(auto deviceIt = i.devices.begin(); deviceIt != i.devices.end(); ++deviceIt){
+	
+	try {
+		auto rooms = client.syncState().get();
+		for (auto i = rooms.begin(); i != rooms.end(); ++i) {
+			std::cout << i->first << "\n";
+			std::cout << (i->second.get()->isEncrypted() ? "Encrypted session" : "Unencrypted session") << std::endl;
+			//Print users
+			auto users = i->second->requestRoomMembers().get();
+			for (auto it = users.begin(); it != users.end(); ++it) {
+				User i = it->second;
+				std::cout << "\t" << i.id << std::endl;
+				std::cout << "\t\t" << i.displayName << std::endl;
+				std::cout << "\t\t" << i.avatarURL << std::endl;
+				std::cout << "\t\tDevices: " << std::endl;
+				for (auto deviceIt = i.devices.begin(); deviceIt != i.devices.end(); ++deviceIt) {
 					std::cout << "\t\t\t" << deviceIt->second.get()->id << std::endl;
+				}
+			}
+			std::cout << "\t" << i->second->getName() << "\n";
+			std::cout << "\t\tencrypted: " << (i->second->isEncrypted() ? "true" : "false") << "\n";
+			for (LibMatrix::Message msg : i->second->getMessages()) {
+				std::cout << "\t\t" << msg.id << "\n";
+				std::cout << "\t\t" << msg.content << "\n";
+				std::cout << "\t\t" << msg.sender << "\n";
 			}
 		}
-		std::cout << "\t" << i->second->getName() << "\n";
-		std::cout << "\t\tencrypted: " << (i->second->isEncrypted() ? "true" : "false") << "\n";
-		for(LibMatrix::Message msg : i->second->getMessages()) {
-			std::cout << "\t\t" << msg.id << "\n";
-			std::cout << "\t\t" << msg.content << "\n";
-			std::cout << "\t\t" << msg.sender << "\n";
-		}
+	} catch (std::runtime_error e) {
+		std::cout << "Runtime error with sync." << std::endl;
+		std::cout << e.what() << std::endl;
+		return 1;
+	} catch (std::future_error e) {
+		std::cout << "Future error with sync." << std::endl;
+		std::cout << e.what() << std::endl;
+		return 1;
 	}
 
 	while(true) {

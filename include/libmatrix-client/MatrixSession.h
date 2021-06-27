@@ -71,7 +71,6 @@ private:
 	void postLoginSetup();
 
 	std::future<void> publishOneTimeKeys(nlohmann::json keys);
-	std::future<void> requestEncryptionKey(std::string roomId, std::string olmSessionId);
 
 	void signJSONPayload(nlohmann::json& payload);
 
@@ -82,9 +81,9 @@ private:
 
 	RoomMap roomMap;
 public:
-	MatrixSession();
-	explicit MatrixSession(std::string url);
-	~MatrixSession();
+	LIBMATRIX_DLL_EXPORT MatrixSession();
+	explicit LIBMATRIX_DLL_EXPORT MatrixSession(std::string url);
+	LIBMATRIX_DLL_EXPORT ~MatrixSession();
 
 	std::future<const RoomMap&> LIBMATRIX_DLL_EXPORT syncState(nlohmann::json filter = {}, int timeout = 30000);
 

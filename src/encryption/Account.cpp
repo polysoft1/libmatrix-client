@@ -107,9 +107,20 @@ json Account::generateOneTimeKeys(int num) {
 		throw Exceptions::OLMException(olm_account_last_error(account), Exceptions::OTK_GENERATION);
 	}
 
-	json keys = json::parse(std::string(
-		reinterpret_cast<char*>(outBuffer)
-	));
+	std::string bufferAsString(
+		reinterpret_cast<char*>(outBuffer),
+		otkLen
+	);
+	std::cout << bufferAsString << std::endl;
+
+	json keys;
+	try {
+		keys = json::parse(bufferAsString);
+	}
+	catch (nlohmann::detail::parse_error e) {
+		std::cout << e.what() << std::endl;
+		std::cout << e.byte << std::endl;
+	}
 
 	for(auto i = keys.begin(); i != keys.end(); ++i){
 		if(!i->is_object()) {//No clue what that's doing in the generated text if it's not an obj
