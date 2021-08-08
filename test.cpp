@@ -18,7 +18,7 @@ int main(int argc, const char **argv) {
 			future.get();
 		} catch(Exceptions::OLMException e){
 			switch(e.type()) {
-				case Exceptions::ACC_CREATE:
+				case Exceptions::OLMError::ACC_CREATE:
 					std::cerr << "Error: Could not create encryption session.  Reason: " << e.what() << std::endl;
 			}
 		} 

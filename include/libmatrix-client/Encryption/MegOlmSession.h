@@ -1,5 +1,5 @@
-#ifndef __SESSION_H__
-#define __SESSION_H__
+#ifndef __LIBMATRIX_ENCRYPT_MEGOLMSESSION_H__
+#define __LIBMATRIX_ENCRYPT_MEGOLMSESSION_H__
 
 #include <ctime>
 #include <unordered_map>

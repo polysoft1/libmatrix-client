@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace LibMatrix::Encryption{
+namespace LibMatrix::Encryption {
 class IdentityKey {
 private:
     std::string algo;

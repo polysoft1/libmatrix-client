@@ -12,6 +12,7 @@ public:
 	std::string id;
 	std::string displayName;
 	std::string avatarURL;
+	// Key: device ID, value: Device object
 	std::unordered_map<std::string, std::shared_ptr<Device>> devices;
 };
 }; // namespace LibMatrix

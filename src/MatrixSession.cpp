@@ -40,6 +40,7 @@ MatrixSession::MatrixSession(std::string url) : homeserverURL(url), syncToken(""
 
 MatrixSession::~MatrixSession() {}
 
+// TODO make non-blocking
 void MatrixSession::postLoginSetup() {
 	try{
 		e2eAccount = std::make_unique<Encryption::Account>();

@@ -29,7 +29,7 @@ Account::Account() {
 	if (retVal == olm_error()) {
 		std::string err = olm_account_last_error(account);
 		clear();
-		throw Exceptions::OLMException(err, Exceptions::ACC_CREATE);
+		throw Exceptions::OLMException(err, Exceptions::OLMError::ACC_CREATE);
 	}
 }
 
@@ -50,7 +50,7 @@ void Account::generateIdKeys() {
 		delete[] buffer;
 		buffer = nullptr;
 
-		throw Exceptions::OLMException(err, Exceptions::ID_KEY_GEN);
+		throw Exceptions::OLMException(err, Exceptions::OLMError::ID_KEY_GEN);
 	}
 	std::string idKeyStr = std::string(reinterpret_cast<char *>(buffer), idLength);
 	delete[] buffer;
@@ -72,7 +72,7 @@ std::string Account::sign(std::string message) {
 		delete[] buffer;
 		buffer = nullptr;
 
-		throw Exceptions::OLMException(err, Exceptions::SIGNATURE);
+		throw Exceptions::OLMException(err, Exceptions::OLMError::SIGNATURE);
 	}
 
 	std::string sig = std::string(reinterpret_cast<char *>(buffer), sigSize);
@@ -93,7 +93,7 @@ json Account::generateOneTimeKeys(int num) {
 		delete[] buffer;
 		buffer = nullptr;
 
-		throw Exceptions::OLMException(olm_account_last_error(account), Exceptions::OTK_GENERATION);
+		throw Exceptions::OLMException(olm_account_last_error(account), Exceptions::OLMError::OTK_GENERATION);
 	}
 	delete[] buffer;
 	buffer = nullptr;
@@ -104,7 +104,7 @@ json Account::generateOneTimeKeys(int num) {
 	if(olm_account_one_time_keys(account, outBuffer, otkLen) == olm_error()) {
 		delete[] outBuffer;
 		outBuffer = nullptr;
-		throw Exceptions::OLMException(olm_account_last_error(account), Exceptions::OTK_GENERATION);
+		throw Exceptions::OLMException(olm_account_last_error(account), Exceptions::OLMError::OTK_GENERATION);
 	}
 
 	std::string bufferAsString(
