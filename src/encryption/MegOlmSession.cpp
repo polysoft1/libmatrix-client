@@ -29,7 +29,7 @@ MegOlmSession::MegOlmSession() : msgCounter(0), msgLimit(-1), endTime(-1) {
 	if(olm_outbound_group_session_key(outSession, reinterpret_cast<uint8_t*>(sessionKey.data()), keyLen) == olm_error()) {
 		throwError(true);
 	}
-	createInboundSession();
+	//createInboundSession();
 }
 
 MegOlmSession::MegOlmSession(std::string sessionKey)

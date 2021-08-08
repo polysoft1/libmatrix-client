@@ -19,16 +19,64 @@ Room::Room(MatrixSession& parentSession, std::string_view id, std::string name,
 	prevToken(prevToken), nextToken(nextToken), encrypted(encrypted),
 	parentSession(parentSession)
 {
-	if(encrypted) {
-		encryptionSession = std::make_unique<Encryption::MegOlmSession>();
-	}
+	initialSetup();
+}
+
+void Room::initialSetup() {
+	// TODO: Make async
+
+	// First, request room members, which will also get the device list for each member
+	// For now moved to sendMessage.
+	// Now we have the device list for all members of the room.
 }
 
 std::future<void> Room::sendMessage(std::string message) {
-	return parentSession.sendMessageRequest(id, {
-		{"msgtype", "m.text"},
-		{"body", message}
-	});
+	auto threadResult = std::make_shared<std::promise<void>>();
+	if (parentSession.verifyAuth(threadResult)) {
+		nlohmann::json payload = {
+			{"msgtype", "m.text"},
+			{"body", message}
+		};
+
+		if (encrypted) {
+			if (!encryptionSession) {
+				// First get the members and the devices
+				std::unordered_map<std::string, std::shared_ptr<User>> memberResult = requestRoomMembers().get();
+				std::vector<std::shared_ptr<User>> users;
+				for (const auto memberPair : memberResult)
+					users.push_back(memberPair.second);
+
+				// TODO: Schedule this so it doesn't block
+				// Next, make sure they all have valid Olm sessions.
+				parentSession.updateOlmSessions(users).get();
+				// Next, create the MegOlm session
+				encryptionSession = std::make_unique<Encryption::MegOlmSession>();
+				// Next, send the MegOlm keys using Olm
+
+				
+				// Now that the session is created, we need to use OLM to send the MegOlm keys to everyone.
+
+				
+			}
+		}
+
+		std::string url = fmt::format(MatrixURLs::SEND_MESSAGE_FORMAT, id, parentSession.getNextTransactionID());
+		parentSession.httpCall(url, HTTPMethod::PUT, payload, [threadResult, payload](Response result) {
+			json body = json::parse(result.data);
+
+			switch (result.status) {
+			case HTTPStatus::HTTP_OK:
+				threadResult->set_value();
+				break;
+			default:
+				std::cout << payload << std::endl;
+				std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
+				threadResult->set_exception(
+					std::make_exception_ptr(std::runtime_error("Non-okay HTTP response")));
+			}
+			}, parentSession.createErrorCallback<void>(threadResult));
+	}
+	return threadResult->get_future();
 }
 
 const std::string Room::getEncryptionSessionId() const {
@@ -86,8 +134,8 @@ std::future<void> Room::requestRoomKeys() {
 }
 
 
-std::future<std::unordered_map<std::string, User>> Room::requestRoomMembers() {
-	auto threadedResult = std::make_shared<std::promise<std::unordered_map<std::string, User>>>();
+std::future<std::unordered_map<std::string, std::shared_ptr<User>>> Room::requestRoomMembers() {
+	auto threadedResult = std::make_shared<std::promise<std::unordered_map<std::string, std::shared_ptr<User>>>>();
 
 	if (parentSession.verifyAuth(threadedResult)) {
 		if (id.empty()) {
@@ -105,17 +153,18 @@ std::future<std::unordered_map<std::string, User>> Room::requestRoomMembers() {
 					break;
 				case HTTPStatus::HTTP_OK:
 					json members = body["joined"];
-					std::unordered_map<std::string, User> output;
+					std::unordered_map<std::string, std::shared_ptr<User>> output;
 
 					for (auto i = members.begin(); i != members.end(); ++i) {
-						User member = parseUser(parentSession.getHomeserverURL(), i.key(), *i);
-						output[member.id] = member;
+						std::shared_ptr<User> member = parseUser(parentSession.getHomeserverURL(), i.key(), *i);
+						output[member->id] = member;
 					}
+					// TODO: Make this not block this thread
 					parentSession.getUserDevices(output).get();
 					threadedResult->set_value(output);
 					break;
 				}
-				}, parentSession.createErrorCallback<std::unordered_map<std::string, User>>(threadedResult));
+				}, parentSession.createErrorCallback<std::unordered_map<std::string, std::shared_ptr<User>>>(threadedResult));
 		}
 	}
 

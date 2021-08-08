@@ -37,12 +37,12 @@ int main(int argc, const char **argv) {
 			//Print users
 			auto users = i->second->requestRoomMembers().get();
 			for (auto it = users.begin(); it != users.end(); ++it) {
-				User i = it->second;
-				std::cout << "\t" << i.id << std::endl;
-				std::cout << "\t\t" << i.displayName << std::endl;
-				std::cout << "\t\t" << i.avatarURL << std::endl;
+				std::shared_ptr<User> i = it->second;
+				std::cout << "\t" << i->id << std::endl;
+				std::cout << "\t\t" << i->displayName << std::endl;
+				std::cout << "\t\t" << i->avatarURL << std::endl;
 				std::cout << "\t\tDevices: " << std::endl;
-				for (auto deviceIt = i.devices.begin(); deviceIt != i.devices.end(); ++deviceIt) {
+				for (auto deviceIt = i->devices.begin(); deviceIt != i->devices.end(); ++deviceIt) {
 					std::cout << "\t\t\t" << deviceIt->second.get()->id << std::endl;
 				}
 			}

@@ -31,6 +31,8 @@ private:
 	std::string nextToken;
 	MatrixSession& parentSession;
 
+	void initialSetup();
+
 public:
 	Room(MatrixSession& parentSession, std::string_view id, std::string name,
 		const std::vector<Message> &messages, bool encrypted = false, std::string prevToken = "",
@@ -48,7 +50,7 @@ public:
 	std::future<void> LIBMATRIX_DLL_EXPORT requestRoomKeys();
 	void LIBMATRIX_DLL_EXPORT setRoomEncryptionKey(std::string key);
 
-	std::future<std::unordered_map<std::string, User>> LIBMATRIX_DLL_EXPORT requestRoomMembers();
+	std::future<std::unordered_map<std::string, std::shared_ptr<User>>> LIBMATRIX_DLL_EXPORT requestRoomMembers();
 
 	/**
 	 * Shares the room keys with all trusted clients in the room.

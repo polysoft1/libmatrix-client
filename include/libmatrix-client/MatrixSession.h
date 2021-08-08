@@ -38,6 +38,7 @@ namespace MatrixURLs {
 	const std::string GET_ROOMS = CLIENT_PREFIX + "/joined_rooms";
 	const std::string SYNC = CLIENT_PREFIX + "/sync";
 	const std::string DEVICE_KEY_QUERY = CLIENT_PREFIX + "/keys/query";
+	const std::string CLAIM_KEY_QUERY = CLIENT_PREFIX + "/keys/claim";
 
 	const std::string SEND_MESSAGE_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/send/m.room.message/{:s}";
 	const std::string GET_ROOM_MESSAGE_FORMAT = CLIENT_PREFIX + "/rooms/{:s}/messages";
@@ -89,11 +90,11 @@ public:
 
 	std::future<void> LIBMATRIX_DLL_EXPORT login(std::string uname, std::string password);
 
-	std::future<void> LIBMATRIX_DLL_EXPORT sendMessage(std::string roomID, std::string message);
-
 	std::future<void> LIBMATRIX_DLL_EXPORT updateReadReceipt(std::string roomID, LibMatrix::Message message);
 
-	std::future<void> getUserDevices(std::unordered_map<std::string, User> users, int timeout = 10000);
+	std::future<void> getUserDevices(std::unordered_map<std::string, std::shared_ptr<User>> users, int timeout = 10000);
+
+	std::future<void> updateOlmSessions(std::vector<std::shared_ptr<User>> users);
 	
 	void httpCall(std::string url, HTTPMethod method, const nlohmann::json &data, ResponseCallback callback, ErrorCallback errCallback);
 	template <class T>
@@ -119,8 +120,6 @@ public:
 
 		return !isEmpty;
 	}
-
-	std::future<void> sendMessageRequest(std::string roomId, const nlohmann::json &payload);
 
 	const std::string& getDeviceId() const { return deviceID; }
 	const std::string& getUserId() const { return userId; }

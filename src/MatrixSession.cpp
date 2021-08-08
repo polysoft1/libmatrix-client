@@ -243,7 +243,7 @@ void MatrixSession::httpCall(std::string url, HTTPMethod method, const json &dat
 	http->request(reqData);
 }
 
-std::future<void> MatrixSession::getUserDevices(std::unordered_map<std::string, User> users, int timeout) {
+std::future<void> MatrixSession::getUserDevices(std::unordered_map<std::string, std::shared_ptr<User>> users, int timeout) {
 	json request = {
 		{"timeout", timeout},
 		{"token", nextTransactionID}
@@ -264,8 +264,13 @@ std::future<void> MatrixSession::getUserDevices(std::unordered_map<std::string, 
 			switch(result.status) {
 				case HTTPStatus::HTTP_OK:
 					for(auto it = deviceKeys.begin(); it != deviceKeys.end(); ++it) {
+						// TODO: Verify the signatures with olm_ed25519_verify
+						// Then check to make sure that the user_id and device_id fields
+						// match those in the top-level map.
+						// Then check to make sure the device and user correspond to any
+						// previously seen devices.
 						std::string uid = it.key();
-						User current = users.at(uid);
+						std::shared_ptr<User> current = users.at(uid);
 						json userDevices = (*it)[uid];
 						for(auto deviceIt = userDevices.begin(); deviceIt != userDevices.end(); ++deviceIt) {
 							std::shared_ptr<Device> deviceObj = std::make_shared<Device>();
@@ -276,7 +281,7 @@ std::future<void> MatrixSession::getUserDevices(std::unordered_map<std::string, 
 							deviceObj->idKeys = currentDevice["keys"].get<std::unordered_map<std::string, std::string>>();
 							deviceObj->signatures = currentDevice["signatures"][uid].get<std::unordered_map<std::string, std::string>>();
 							
-							current.devices[deviceObj->id] = deviceObj;
+							current->devices[deviceObj->id] = deviceObj;
 						}
 					}
 					thing->set_value();
@@ -293,6 +298,67 @@ std::future<void> MatrixSession::getUserDevices(std::unordered_map<std::string, 
 	}
 
 	return thing->get_future();
+}
+
+std::future<void> MatrixSession::updateOlmSessions(std::vector<std::shared_ptr<User>> users)
+{
+	// https://matrix.org/docs/spec/client_server/r0.4.0#post-matrix-client-r0-keys-claim
+	auto promise = std::make_shared<std::promise<void>>();
+	if (verifyAuth(promise)) {
+		int keysRequested = 0;
+		json request = {
+			{"timeout", 10000},
+		};
+		for (std::shared_ptr<User> user : users) {
+			for (std::pair<std::string, std::shared_ptr<Device>> device : user->devices) {
+				// Request one time key if there is no OlmSession
+				if (!device.second->currentSession) {
+					request[user->id][device.first] = "signed_curve25519";
+					keysRequested++;
+				}
+			}
+		}
+		if (keysRequested == 0) {
+			promise->set_value();
+		} else {
+
+			httpCall(MatrixURLs::CLAIM_KEY_QUERY, HTTPMethod::POST, request, [this, promise, users](Response resp) {
+
+				// TODO: Check the signatures
+				// TODO: Account for failures (which can happen)
+				// Note, key ID is ignored right now.
+
+				json body = json::parse(resp.data);
+				auto keysSection = body["one_time_keys"];
+				for (std::shared_ptr<User> user : users) {
+					auto userSection = keysSection[user->id];
+					for (std::pair<std::string, std::shared_ptr<Device>> device : user->devices) {
+
+						// TODO: Account for discrepancies due to a change in the device list
+						// during the duration of this call.
+						for (auto& [keyTypeAndName, keySection] : userSection[device.first].items()) {
+							if (!device.second->currentSession) {
+								device.second->currentSession = std::make_shared<OlmSession>();
+								std::string oneTimeKey = keySection["key"];
+								std::string curve25519IdentityKey = device.second->idKeys["curve25519:" + device.first];
+
+								size_t randLen = olm_create_outbound_session_random_length(device.second->currentSession.get());
+								uint8_t* buffer = new uint8_t[randLen];
+								seedArray(buffer, randLen);
+
+								olm_create_outbound_session(device.second->currentSession.get(), e2eAccount->account, curve25519IdentityKey.data(),
+									curve25519IdentityKey.length(), oneTimeKey.data(), oneTimeKey.length(), buffer, randLen);
+							}
+						}
+					}
+				}
+
+				promise->set_value();
+
+			}, createErrorCallback<void>(promise));
+		}
+	}
+	return promise->get_future();
 }
 
 std::future<void> MatrixSession::publishOneTimeKeys(json keys) {
@@ -329,27 +395,4 @@ void MatrixSession::signJSONPayload(json &payload) {
 			{"ed25518:" + deviceID, signature}}
 		}
 	};
-}
-
-std::future<void> MatrixSession::sendMessageRequest(std::string roomId, const nlohmann::json &payload) {
-	auto threadResult = std::make_shared<std::promise<void>>();
-	if(verifyAuth(threadResult)) {
-		//TODO(kdvalin) Update transaction IDs to be unique
-		std::string url = fmt::format(MatrixURLs::SEND_MESSAGE_FORMAT, roomId, "m" + std::to_string(nextTransactionID++));
-		httpCall(url, HTTPMethod::PUT, payload, [threadResult, payload](Response result) {
-				json body = json::parse(result.data);
-
-				switch(result.status) {
-				case HTTPStatus::HTTP_OK:
-					threadResult->set_value();
-					break;
-				default:
-					std::cout << payload << std::endl;
-					std::cerr << static_cast<int>(result.status) << ": " << body << std::endl;
-					threadResult->set_exception(
-						std::make_exception_ptr(std::runtime_error("Boo")));
-				}
-			}, createErrorCallback<void>(threadResult));
-	}
-	return threadResult->get_future();
 }

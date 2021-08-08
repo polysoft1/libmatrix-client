@@ -12,11 +12,12 @@
 namespace LibMatrix::Encryption {
 class Account {
 private:
-    OlmAccount *account;
     std::vector<IdentityKey> idKeys;
     std::queue<OneTimeKey> oneTimeKeys;
 
 public:
+    OlmAccount* account;
+
     Account();
     ~Account();
     void clear();
