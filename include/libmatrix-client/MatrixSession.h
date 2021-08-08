@@ -126,6 +126,8 @@ public:
 	const std::string& getUserId() const { return userId; }
 	const std::string& getSenderKey() const { return e2eAccount->getIdKeys()[0].getValue(); }
 	const std::string& getHomeserverURL() const { return homeserverURL; }
+
+	std::string getNextTransactionID() { return "m" + std::to_string(nextTransactionID++); }
 };// End MatrixSession Class
 
 }  // namespace LibMatrix

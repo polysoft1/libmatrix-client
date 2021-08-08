@@ -41,10 +41,9 @@ const std::string Room::getEncryptionSessionId() const {
 std::future<void> Room::requestRoomKeys() {
 	auto threadResult = std::make_shared<std::promise<void>>();
 
-	//TODO (kdvalin) more unique transaction IDs
 	uint8_t num;
 	seedArray(&num, 1);
-	std::string txnId = std::string("test") + std::to_string(num);
+	std::string txnId = parentSession.getNextTransactionID();
 	std::cerr << "DEBUG: " << encryptionSession->getSessionId() << std::endl;
 	json req;
 	req["messages"] = {
