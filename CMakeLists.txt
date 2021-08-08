@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 2.8.11)
-project (libmatrix-client)
+cmake_minimum_required(VERSION 3.0)
+project(libmatrix-client VERSION 0.0.1 LANGUAGES CXX)
 
 set(OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/target/)
 
@@ -91,15 +91,15 @@ if(BUILD_DRIVERS)
 	set_target_properties(driver-shared PROPERTIES CXX_STANDARD 17)
 	target_include_directories(driver-shared PUBLIC "include/libmatrix-client")
 
-	target_link_libraries(driver-static libmatrix-client-static)
-	target_link_libraries(driver-shared libmatrix-client)
+	target_link_libraries(driver-static PRIVATE libmatrix-client-static)
+	target_link_libraries(driver-shared PRIVATE libmatrix-client)
 
-	target_link_libraries(driver-shared Olm::Olm)
-	target_link_libraries(driver-static Olm::Olm)
+	target_link_libraries(driver-shared PRIVATE Olm::Olm)
+	target_link_libraries(driver-static PRIVATE Olm::Olm)
 endif()
 
-target_link_libraries(libmatrix-client Olm::Olm)
-target_link_libraries(libmatrix-client-static Olm::Olm)
+target_link_libraries(libmatrix-client PRIVATE Olm::Olm)
+target_link_libraries(libmatrix-client-static PRIVATE Olm::Olm)
 
 if(USE_CONAN)
     include(${CMAKE_CURRENT_SOURCE_DIR}/conanbuildinfo.cmake)
